@@ -416,6 +416,104 @@ AS
   - met een output 
 
 ### Error handling in Transact SQL
+- RETURN
+  - het direct stoppen van de uitvoering van de batch procedure
+- @@error
+  - het bevat de error nummer van het laatst uitgevoerd SDL instructie
+  - als het OK is, value = 0
+- gebruik TRY....CATCH block
+- alle syteem error berichten zitten in de system table sysmessages
+- je kun je eigen berichten maken via raiserror
+  - RAISERROR(msg, severity, state)
+    - msg: het error bericht
+    - severity: waarden tussen 0 en 18
+    - state: waarden tussen 1 en 127, 
+### Exception Handling: catch-block functions
+- ERROR_LINE(): lijn nummer waar de exception gebeurde
+- ERROR_MESSAGE(): error bericht
+- ERROR_PROCEDURE(): SP waar de exception gebeurde
+- ERROR_NUMBER(): error nummer
+- ERROR_SEVERITY(): severity level
+- voorbeeld:
+    ```sql
+    CREATE PROCEDURE DeleteShipper @ShipperID int, @NumberOfDeletedShippers int OUT
+    AS
+    BEGIN
+        BEGIN TRY
+            BEGIN TRANSACTION
+            DELETE FROM Shippers WHERE ShipperID = @ShipperID
+            SET @NumberOfDeletedShippers = @@ROWCOUNT
+            COMMIT
+        END TRY
+        BEGIN CATCH
+            ROLLBACK
+            INSERT INTO log values(GETDATE(), ERROR_MESSAGE(), ERROR_NUMBER(), ERROR_PROCEDURE(), ERROR_LINE(), ERROR_SEVERITY())
+        END CATCH
+    END
+    ```
+### Throw
+- het is een alternatief voor RAISERROR
+- gooit een exception en geeft de uitvoering door aan een CATCH-block of een TRY..CATCH contruct in SQL Server
+- zonder parameters: alleen in catch block
+- met parameters: uit de catch block
+- maak je eigen defined exception
+  - `THROW(error_number, message, state)`
+    - error_number: is een int tussen 50000 en 2147483647
+    - state: waarden tussen 1 en 127
+
+## Cursors
+### Cursors
+- is een database object dat verwijst naar het resultaat van een query
+- 5 belangrijke cursor gerelateerde statements
+  - `DECLARE CURSOR`: maakt en definieert de cursor
+  - `OPEN`: opent de gedeclareerde cursor
+  - `FETCH`: fetcht 1 rij
+  - `CLOSE`: sluit de cursor (tegenhanger van OPEN)
+  - `DEALLOCATE`: verwijdert de cursor definitie (tegenhanger van DECLARE)
+  
+### Cursor declaratie
+```sql
+DECLARE <cursor_name> [INSENSITIVE][SCROLL] CURSOR 
+FOR <SELECT_statement>
+[FOR {READ ONLY | UPDATE[OF <column list>]}]
+```
+- INSENSITIVE
+  - de cursor gebruikt een voorlopig kopie van de data
+  - als INSENSITIVE aanstaat, verwijderingen en updates zijn gereflecteerd in de cursor
+- SCROLL
+  - alle fetch operaties zijn toegelaten
+    - FIRST, LAST, PRIOR, NEXT, RELATIVE en ABSOLUTE
+  - if SCROLL 
+- READ ONLY
+- UPDATE
+  - data veranderingen zijn toegelaten
+
+### het openen van een cursor
+`OPEN <cursor_name>`
+- de cursor is geopend
+- de cursor is 'gevuld'
+  - het SELECT-statement is uitgevoerd. Een virtuele tabel is gevuld met een "actieve set"
+
+### Fetching date with a cursor
+```sql
+FETCH [NEXT | PRIOR | FIRST | LAST | {ABSOLUTE | RELATIVE <row_number>}]
+FROM <cursor_name>
+    [INTO <variable_name>[,...<last_variable_name>]]
+```
+- de cursor is gepositioneerd
+- de date is gefetcht
+  - zonder INTO clause de resultaat data wordt op het scherm getoond
+  - met INTO clause data is aan de specifieke variables gelinkt
+
+### Closing a cursor
+`CLOSE <cursor_name>`
+- de cursor is gesloten
+
+### Deallocating a cursor
+`DEALLOCATE <cursor_name>`
+- cursor definitie is verwijderd
+
+### Nested cursors
 # Indexen
 
 # Basics of Transaction Management
