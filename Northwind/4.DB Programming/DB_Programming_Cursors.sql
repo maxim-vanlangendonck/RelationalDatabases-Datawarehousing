@@ -55,6 +55,56 @@ END
     -          4 Margaret Peacock Redmond
     -          8 Laura Callahan Seattle
 */
+DECLARE @country NVARCHAR(30)
+DECLARE @employeeID INT, @fullName NVARCHAR(50), @city NVARCHAR(15)
+-- Declare cursor
+DECLARE country_cursor CURSOR
+FOR
+SELECT DISTINCT country
+FROM Employees
+
+-- open cursor
+OPEN country_cursor
+
+-- fetch data
+FETCH NEXT FROM country_cursor INTO @country
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	PRINT '* ' + @country
+	-- begin inner cursor
+	DECLARE employees_cursor CURSOR
+	FOR
+	SELECT EmployeeID, FirstName + ' ' + LastName, City
+	FROM Employees
+	WHERE Country = @country
+
+	-- open cursor
+	OPEN emloyees_cursor
+
+	-- fetch data
+	FETCH NEXT FROM employees_cursor INTO @employeeID, @fullName, @city
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT '    - ' + STR(@employeeID) + ' ' + @fullName + ' ' + @fullName + ' ' + @city
+		FETCH NEXT FROM employees_cursor INTO @employeeID, @fullName, @city
+	END
+	
+	CLOSE employees_cursor
+
+	-- deallocate cursor
+	DEALLOCATE employees_cursor
+
+	-- end inner cursor
+	FETCH NEXT FROM country_cursor INTO @country
+END
+
+-- close cursor
+CLOSE country_cursor
+
+-- deallocate cursor
+DEALLOCATE country_cursor
 
 
 
@@ -79,3 +129,9 @@ Total number of employees =          5
     -          9 Anne Dodsworth
 Total number of employees =          3
 */
+
+DECLARE boss_cursor CURSOR
+FOR
+SELECT DISTINCT reportsTo
+FROM Employees
+WHERE reportsTo IS NOT NULL

@@ -514,6 +514,51 @@ FROM <cursor_name>
 - cursor definitie is verwijderd
 
 ### Nested cursors
-# Indexen
 
-# Basics of Transaction Management
+### Update and delete via cursor
+```sql
+DELETE FROM <table_name>
+WHERE CURRENT OF <cursor_name>
+```
+```sql
+UPDATE <table_name>
+SET ...
+WHERE CURRENT OF <cursor_name>
+```
+
+## Triggers
+### Triggers
+- = een database programma, dat bestaat uit procedural en declaratieve instructies, opgeslage in een catalogus en geactiveerd door de DBMS
+- DML Triggers
+  - kan uitgevoerd worden met:
+    - insert
+    - update
+    - delete
+  - zijn geactiveerd:
+    - before: voor het IUD is geprocesseerd
+    - instead of: in plaats van IUD commando
+    - after: achter de IUD is geprocesseerd
+  - in sommige DMBS
+    - for each row
+    - for each statement
+### Procedural database object
+- procedural programma's
+| Types | Saved as  | Execution | Supports Parameters |
+| :---  | :---      | :---      | :----               |
+| **script**  | seperate file | client tool (management studio) | no  |
+| **stored procedure**  | database object | via application or SQL script | yes |
+| **user defined function** | database object | via application or SQL script | yes |
+| **trigger** | database object | via DML statement | no  |
+
+### Why using triggers?
+- de validatie van data en complex constraints
+- de automatisch genereren van waarden
+- supports voor alerts
+- auditing
+- replicatie en controle van update van redundante data
+  
+### Voordelen
+- 
+# 5.Indexen
+
+# 6.Basics of Transaction Management
