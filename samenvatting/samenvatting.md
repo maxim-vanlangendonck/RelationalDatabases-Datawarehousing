@@ -558,7 +558,63 @@ WHERE CURRENT OF <cursor_name>
 - replicatie en controle van update van redundante data
   
 ### Voordelen
-- 
-# 5.Indexen
 
+### Nadelen
+
+### Virtuele tabellen met triggers
+- 2 verlopige tabellen
+  - verwijderde tabel
+    - bevat een kopie van de geupdate en verwijderde rijen
+  - ingevoegde tabel
+    - bevat kopies van geupdate en ingevoegde rijen
+
+### Creation of an after trigger
+```sql
+CREATE TRIGGER triggerName
+ON table
+FOR [INSERT, UPDATE, DELETE]
+AS ...
+```
+- alleen door SysAdmin of dbo
+- gelinkt met 1 tabel
+- is uitgevoerd
+  - na de uitvoering van de triggering actie; insert, update, delete
+  - achter een kopie van veranderingen naar voorlopige tabellen
+
+
+# 5.Indexes and performance
+## Space allocation by SQL Server
+- SQL server gebruikt RAM files
+- pagina = 8 kB of ruimte
+- extent = 8 logische consectutieve pagines
+  - unifrom extents: for 1 db object
+  - mixed extents: kan gedeeld worden door 8 db objecten
+- nieuwe tabel of index: allocation in mixed extent
+- extension > 8: uniform extent
+
+## Creation of indexen
+```sql
+CREATE [UNIQUE] [| NONCLUSTERED]
+  INDEX index_name ON table (kolom [,...nl])
+```
+- unieke index: alle waarden in de index kolom moeten uniek zijn
+- opmerking
+  - wanneer je een index definieert, kan de tabel leeg of vol zijn
+  - kolomen in een unieke index kunnen geen null constraint hebben
+
+## Removing indexes
+`DROP INDEX table_name.index [,...n]`
+- alle waarden in de kolom moeten uniek zijn
+- opmerking
+  - wanneer je een index definieert, kan de tabel leeg of vol zijn
+  - kolomen in een unieke index kunnen geen null constraint hebben
+
+## Table scan
+- Heap: ongeordende collectie of data-paginas zonder clustered index = default storage van de tabel
+- access via Index Allocation Map (IAM)
+- tabel scan: 
+- ander performantie problemen met heap:
+  - fragmentatie
+  - forward pointers
+  - 
 # 6.Basics of Transaction Management
