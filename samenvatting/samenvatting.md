@@ -127,7 +127,6 @@
 ### subqueries in the SELECT-clause
 
 ## DML
-
 ### Tip for not destroying your database
 
 ```sql
@@ -605,11 +604,49 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 ## Table scan
 - Heap: ongeordende collectie of data-paginas zonder clustered index = default storage van de tabel
 - access via Index Allocation Map (IAM)
-- tabel scan: 
+- tabel scan: als een query alle pagina's van de tabel fetchen
 - ander performantie problemen met heap:
-  - fragmentatie
-  - forward pointers
-  - 
+  - fragmentatie: de tabel is over verschillende, niet-consectieve pagina's verspreid
+  - forward pointers: 
+- verschillende stappen van een table scan
+  - **stap 1**: steek de ongeordende data in tabellen
+    - zeer inefficiënt
+  - **stap 2**: probeer de data in een fysieke volgorde te steken
+
+## Clustered index
+- achter dat de tabel data in een fysieke volgorde werd gestoken, dan zal de SQL server een set van index pagina's aanmaken zodat de queries toegelaten worden om direct naar de data te gaan waarin ze geïnteresseerd zijn. 
+- deze hele structuur, met de basis tabel data, wordt een clustered index genoemd
+- wanneer een query navigeert door de clustered index, noemt dit **clustered index seek**
+## Non Clustered index
+## Filtered index
+- bevatten alleen rijen dat 
+- een geclustered index kan geen filtered index zijn, want deze bevat alle data van in de tabel
+
+## INCLUDES
+- INCLUDE kolommen voegen een kopie toe van een non-key kolom waarden aan de blad-level van de index tree
+- een clustered index heeft geen INCLUDE kolomen nodig omdat alle bladeren beschikbaar zijn in de bladeren
+
+## Clustered vs Non Clustered index
+- een clustered index is een manier om de basis data te tonen als een geheel
+- een non clustered index is een fysieke scheiding dat refereert naar de base data en het kan een verschillende sorteer-volgorde hebben
+
+## Indexes
+- **Wat?**
+  - een geordende structuur opgelegd op de records van een tabel
+  - snelle toegang door de boomstructuur (B-tree = balanced tree)
+- **Waarom?**
+  - versnelt de ophaling van de data
+  - kan de uniekheid van rijen vastleggen
+- **Waarom niet?**
+  - indexes nemen veel opslag (overhead)
+  - indexes kunnen updates, delete and inserts vertragen omdat indexes ook geüpdate moeten worden
+
+## SQL Optimizer
+- SQL Optimizer => module in iedere DBMS
+- analiseert en rephrased iedere SQL commando die verstuurt wordt naar de databank
+- beslist de beste strategie voor welke index er gebruikt moeten worden, gebaseerd op de statistieken van tabel grootte, het gebruik van de tabel en de distributie van de data
+
+
 # 6.Basics of Transaction Management
 --> multi-user databanken
 ## Transactions, Recovery and concurrency control
