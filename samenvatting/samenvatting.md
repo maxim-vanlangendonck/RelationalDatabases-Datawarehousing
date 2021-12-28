@@ -1,9 +1,5 @@
-# RD&D Syllabus
-
 # 1.SQL Review
-
 ## SQL sub languages
-
 ### Data Definition Language (DDL)
 
 - CREATE, ALTER, DROP
@@ -17,7 +13,6 @@
 - GRANT, REVOKE, DENY
 
 ## Consulting data
-
 ### 1 table
 
 - SELECT
@@ -340,9 +335,7 @@ ORDER BY CategoryID, ProductID
   FROM Employees
 
 # 4.Database Programming
-
 ## SQL as complete language (PSM)
-
 ### Persistent Stored Modules
 
 - SQL/PSM, als een complete programmeertaal
@@ -618,3 +611,75 @@ CREATE [UNIQUE] [| NONCLUSTERED]
   - forward pointers
   - 
 # 6.Basics of Transaction Management
+--> multi-user databanken
+## Transactions, Recovery and concurrency control
+- DBMS moet ACID (Atomicity, Consistency, Isolation, Durability) eigenschappen ondersteunen
+- **Transaction**: een deel van database operaties die gemaakt zijn door 1 gebruiker of applicatie, door gezien wordt als 1 individueel stuk van werk
+  - dit loopt oftewel goed af of deze faalt in zijn geheel
+  - rendert een databank van 1 consequente staat in een andere consequente staat
+- **Recovery**: een activiteit die ervoor zorgt, wanneer er een probleem zou voordoen, dat de databank teruggaat naar een consequente staat zonder dataverlies te lijden
+- **Concurrency Control**: de coördinatie van transacties die tegerlijkertijd worden uitgevoerd op dezelfde data, zodat dat dit niet tot inconsequenties in de data lijd
+
+## Transactions and Transaction Management
+### Delineating Transactions and the Transaction Lifecycle
+- de grenzen van tranacties kunnen impliciet of expliciet aangeduid worden
+  - expliciet
+    - de developer kiest wanneer een transactie start en wanneer deze eindigt of welke stappen er ondernomen moeten worden als deze transactie faalt
+    - **begin transaction** en **rollback transacton / commit transaction**
+  - impliciet: eerste uitvoerbare SQL statement
+- wanneer de eerste operaties uitgevoerd wordt, is de transactie actief
+- wanneer de transactie volledig is, kan deze **gecommit** worden. Zo niet, dan moet deze **rolled back** worden, naar de oorspronkelijke toestand
+
+### Triggers and transactie
+- een trigger is een deel van dezelfde transactie
+
+### DBMS Components involved in Transaction Management
+![DBMS Components](img/image4.png)
+### Logfile
+- logfile registers
+  - een unieke log sequentie nummer
+  - een unieke transactie identifier
+  - before images
+  - after images
+  - current state van de transactie
+- logfile kunnen ook checkpoints bevatten
+  - het tijdelijke geheugen wordt permanent gemaakt
+
+## Recovery
+### Types of Failures
+- **transaction failure**
+- **System Failure**
+- **Media Failure**
+
+### System Recovery
+- in het geval van het falen van een systeem, 2 types van transacties
+  - degene die al in een gecommite state zitten voor het falen
+  - degene dit nog steeds in een actieve state zitten tijdens het falen
+- de logfile is essentieel om te zien welke transacties er nog in welke staat zitten
+
+### Media Recovery
+- is gebaseerd op het type van date redunantie
+  - offline opgeslagen (tape vault)
+  - online opgeslagen (online backup hard disk drive)
+- 2 types
+  - disk mirroring
+    - simultaan de date schrijven naar 2 of meer harde schijven
+  - disk archiving
+    - periodiek kopiëren op een andere storage media
+- mixed approach: rollfoward recovery
+  - het archiveren van database files en het mirroren van de logfile
+
+## Concurrency Control
+### Typical Concurrency Problems
+- een scheduler is verantwoordleijk voor het pannen van de uitvoering van de transacties en zijn operaties
+- problemen
+  - **lost update**: 
+  - **uncommitted dependency (dirty read)**
+  - **inconsistent analysis**
+  - **nonrepeatable read**
+  - **phantom reads**
+![Concurrency Problems](img/image5.png)
+
+## Schedules
+### Schedules and Serial Schedules
+- een schedule S is een set van n transacties
