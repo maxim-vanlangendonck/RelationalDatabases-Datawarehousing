@@ -646,6 +646,48 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 - analiseert en rephrased iedere SQL commando die verstuurt wordt naar de databank
 - beslist de beste strategie voor welke index er gebruikt moeten worden, gebaseerd op de statistieken van tabel grootte, het gebruik van de tabel en de distributie van de data
 
+## Clustered index
+- de fysieke volgorde van de rijen in een tabel corresponderen aan de volgorde in de clustered index
+- hierdoor, kan iedere tabel maar 1 clustered index bevattten
+
+## Non Clustered index
+- default index
+- trager dan een clustered index
+- meer dan 1 per tabel is toegelaten
+- forward and backward pointers tussen bladeren
+- ieder blad bevat een key waarde en een rij locator
+  - naar de positie in de clustered index, als deze bestaat
+  - anders naar de heap
+- als een query meer velden nodig heeft dan dat er zijn in de index, dan zal deze moeten gefetcht worden van de data pagina's
+- wanneer er gelezen wordt via non-clustered index:
+  - RID lookup = bookmark lookups to the heap using RID's (Row Identifiers)
+  - key lookup = bookmark lookups to a clustered index, als deze bestaat
+
+## Covering Index
+- als een non clustered index niet volledig de query covert, dan zal SQL server een opzoeking doen voor iedere rij om de data te fetchen
+- **covering index** = non-clustered index dat alle kolomen bevat voor een bepaalde query
+
+## Index seek vs Index scan
+- **index seek**: boom-structuur van de index die gebruikt wordt, die resulteert in een snel ophalen van data
+- **index scan**: de index wordt gebruikt maar wordt gescant van het begin totdat de gezochte records gevonden worden
+
+## When to use an index?
+- welke kolommen moeten worden indexed?
+  - primaire en unieke kolommen worden automatisch geindext
+  - vreemde keys worden soms gebruikt in joins
+  - kolommen worden soms gebruikt in zoeken condities (WHERE, HAVING, GROUP BY) of in joins
+  - kolommen worden vaak gebruikt in een ORDER BY clause
+- wanneer niet?
+  - kolommen dat heel raar gebruikt worden in queries
+  - kolommen met kleine nummer of mogelijke waarden
+  - kolommen in kleine tabellen
+  - kolommen of type bit, text of afbeelding
+
+## Tips & Tricks
+1. vermijd het gebruik van functies
+2. vermijd bewerkingen, isoleer de kolommen
+3. verkies OUTER JOIN boven UNION
+4. vermijd ANY en ALL
 
 # 6.Basics of Transaction Management
 --> multi-user databanken
