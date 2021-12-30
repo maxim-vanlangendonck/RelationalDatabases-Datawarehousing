@@ -762,3 +762,435 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 ## Schedules
 ### Schedules and Serial Schedules
 - een schedule S is een set van n transacties
+
+### Optimistic and Pessimistic Schedulers
+
+## Locking and Locking Protocols
+### Purposes of Locking
+- het verzekeren dat, in situaties waar er verschillende concurrente transacties proberen toegang te krijgen tot dezelfde database object, dat de toegang enkel maar gegeven word in een manier dat er geen conflict optkomt
+- een lock = een variabele die geassocieerd is met een databank object
+- een lock manager is verantwoordelijk voor het geven van locks en het vrijgeven van locks door het toepassen van een locking protocol
+- een **exclusive lock**: betekent dat een enkele transactie de enkele privilege heeft om te communiceren met dat specifieke databank object op dat tijdstip
+- **shared lock**: garandeert dat geen andere transacties gaat updaten 
+- de 2PL locking protocol werkt als volgend:
+  - voor dat een transactie kan een databank object kan lezen (update), zal hij eerst een shared (exclusive) lock moeten krijgen op dat object
+  - de lock manager beslist of de gevraagde lock kunnen gegeven worden, obv een compabiliteit matrix
+  - het geven en krijgen van de lock gebeurt in 2 fases
+    - growth phase: locks kunnen gekregen worden maar niet vrijgegeven worden
+    - shrink phase: locks worden stap voor stap vrijgegeven, en er worden geen nieuwe locks meer gegeven
+
+### Two-Phase Locking Protocol (2PL)
+- varianten:
+  - Rigorous 2PL: de transactie houdt al zijn lock tot dat hij gecommit word
+  - Static 2PL (Conservative 2PL): de transactie krijgt zijn locks recht op het begin van de transactie
+
+ ![Two-Phase Locking Protocol](img/image6.png)
+
+### Cascading Rollback
+- herbekijkt de ungecommited dependency probleem
+  - het probleem is opgelost wanneer T2 alle lock bijhoudt tot het 
+### Dealing with Deadlocks
+- komt voor wanneer 2 of meerdere transacties aan het wachten zijn voor dat een anders lock wordt vrijgegeven
+- Deadlock preventie kan worden bereikt door static 2PL
+  - de transactie moet alle locks hebben voordat ze kan starten
+- detectie en resolutie
+  - wac
+### Isolation Levels
+- **Reader**: een statement dat data leest door gebruikt te maken van een shared lock (SELECT)
+- **Writer**: statement dat data schrijft, door gebruikt te maken van een exclusieve lock (INSERT, UPDATE, DELETE)
+- writers kunnen niet beïnvloed worden in SQL Server met respect nara de locks dat ze claimen en de duur van deze locks. Zij claimen altijd een exclusieve lock
+  - lezers kunnen expliciet beïnvloed worden
+  - gebruikt makend van de isolatie levels
+- de isolation level in sql server
+  - READ UNCOMMITTED
+    - laagste isolatie level
+    - de lezer vraagt niet achter shared lock
+    - lezer is nooit in conflict met de schrijver
+    - lezer leest ongecommitted data (= dirty read)
+  - READ COMMITTED
+    - standaard isolatie level
+    - laagste level dat dirty reads tegengaat
+    - de lezer leest enkel maar gecomittete data
+    - lezer claimt een shared lock
+    - als op de moment de schrijver een exclusieve lock in zijn bezit heeft, dan moet de lezer wachten voor een shared lock
+  - REPEATABLE READ
+  - SERIALIZABLE
+
+![Isolation level in SQL Server](img/image7.png)
+## ACID
+### ACID Properties of Transactions
+- ACID staat voor Atomicity, Consistency, Isolation en Durability
+- **Atomicity** garandeert dat meerdere databank operaties dat de staat van de databank veranderen kunnen worden behandeld als 1 geheel
+- **Consistency**: refereert naar het feit dat een transactie, als deze uitvoert wordt in isolatie, de database rendert van 1 consequente staat naar een andere consequente staat
+  - de developer is hiervoor verantwoordleijk
+- **Isolation**: zegt dat in situaties waarbij meerdere transacties concurrent worden uitgevoerd, dat de uitkomst hetzelfde moet blijven alsof iedere transactie zou uitgevoerd worden in isolatie
+- **Durability** refereert naar het feit dat de effecten van een gecommitte transactie altijd volhouden worden in een databank
+  - dit is de verantwoordelijkheid van de recovery manager
+
+### Back-up mechanism
+- gebruik nooit de OS back-up voor een databank omdat:
+  - data en logfiles zijn altijd open
+- op een regelmatige momenten worden de data en logfiles automatisch gekopieerd naar een veilige locatie
+  - zonder het systeem te moeten stoppen
+  - de kopies worden opgeslagen op een offline storage
+- 2 
+  - complete back-up of incremental back-up
+  - een mogelijke backup strategie: volledige backups op zondagnacht en daarna incremental backup op andere nachten
+  - Restore: de laatste volledige backup + subsequente incrementele backup, kan zeer veel tijd in beslag nemen
+
+# Datawarehousing + Business Intelligence (BI)
+## Introductie
+### Business Intelligence: definitie
+- Business Intelligence(BI) comprises the set of strategies, processes,
+applications, data, technologies and technical architectures which are
+used by enterprises to support the collection, data analysis,
+presentation and dissemination of business information.
+BI technologies provide historical, current and predictive views of
+business operations.
+Common functions of business intelligence technologies include
+reporting, online analytical processing, analytics, data mining, process
+mining, complex event processing, business performance management,
+benchmarking, text mining, predictive analytics and prescriptive
+analytics.
+
+### Drivers for increasing use of BI
+- digitalisering (ERP, CRM, PLM, DAM, PIM,...)
+- data overflow
+- connectors tussen BI software en Business software
+  - de manier van werken kan dezelfde blijven
+  - BI komt bovenop de al bestaande SW
+- de moeilijkheid en de snelheid van verandering in de Business Environment
+  - buikgevoel en ervaring zijn tegenwoordig niet meer genoeg
+- vermindering inefficiënties, inaccuraties
+- vermindering van de kosten
+
+### BI technologie verkopers
+- Microsoft:
+  - reporting: Microsoft reporing services + PowerBI
+  - BI + data mining: SSAS (SQL Server Analysis Services)
+  - ETL: SSIS (SQL Server Integration Services)
+- Cognos (nu IBM):
+  - ETL
+  - Reporting tools
+- Business Objexts (nu SAP)
+  - reporting
+  - ETL
+- SAP Business Warehouse
+  - Kubus
+- Tableau
+- DatastageETL
+- QlikView rapportering
+
+### Datawarehous: definitie
+- A data warehouse is an integrated, subject oriented, time
+variant and non volatile collection of data to support decisions
+taken on management level.
+- **subject oriented**
+### eigenschappen
+- **time**
+- **integrated**
+- **non volatile**
+- **aggregated data**
+
+### goals of DWH
+- reporting
+- analysering van events in het verleden
+- data mining
+- empowerment van de end user door het geven van versimpelde reporting tools
+- prediction gebaseerd op trend analysering
+
+### voordelen van DHW
+- hoge ROI (Return on Investment)
+- Competitive advantage
+  - beslissingsmakers hebben toegang tot data die oorspronkelijk niet beschikbaar, onbekend of ongebruikt was
+- verhoogde productiviteit van de onderneming beslissingsnemers
+
+## Architectuur
+### DHW componenten
+![DHW componenten](img/image8.png)
+
+### architectuur van een DWH
+![architectuur van een DWH](img/image9.png)
+- operationele data
+  - bronnen:
+    - mainframe
+    - departmental data in files and RDBM systemen
+    - private data op workstation en private servers
+    - externe systemen
+      - internet
+      - commercial DB
+      - data die gebruikt word door de klanten en leveranciers
+- ETL manager
+  - ondersteunt alle operaties 
+- warehouse manager
+  - management van de data in DWH
+    - analysering van data
+    - transformatie en merging data van bronnen of voorlopige storage in DWH tabellen
+    - creatie van indexen en views
+    - creatie van aggragaties
+    - backup en archivering van de data
+- detailed data
+- query manager
+  - het beheer van de user queries
+  - het gebruik van de correcte tabellen
+  - de uitvoering/scheduling van de queries
+  - de generatie van profielen
+  - voorstellen voor aggregaties en indexen
+- summarised data
+- archive/backup data
+  - voor zowel detail als backup data
+    - summarised data kan langer bijgehouden worden dat detailed data
+- meta data
+  - is nodig voor:
+    - ETL
+    - DWH manager
+    - query manager
+- end user toegangs tools
+  - reporting en querying
+  - application development tools
+  - OLAP tools
+  - data mining tools
+
+### DWH & Data marts
+![DWH & Data marts](img/image10.png)
+
+### Datamart
+- Waarom een data mart?
+  - om de users toegang te geven tot de data dat ze vaak analyseren
+  - om data te kunnen geven op een manier dat correspondeerd met het collectieve view van een groep van gebruikers in een departement of groep van gebruikers in dezelfde business proces
+  - om de response tijd te kunnen verbeteren door het verlagen van data volumes
+  - om data te kunnen geven in een formaat de past bij de tools dat de end users gebruiken (OLAP, datamining tools)
+  - de vermindering van de complexiteit in het ETL proces
+  - de vermindering van de kost 
+
+### Data Mining Application
+- Data mining wordt gebruikt om
+  - "What-if" analyseringen
+  - voorspellingen te krijgen
+  - vergemakkelijkt de beslissings proces
+- de applicaties gebruiken complexe statistische en wiskundige technieken
+- de reports zijn minder kritisch
+
+### Problemen die geassocieerd zijn met DWH
+- het onderschatten van de bronnen voor ETL
+  - de extractie, transformatie en het laden van data in de DWH nemen een grote tijd in voor de development tijd
+  - projecten kunnen soms jaren duren
+- verborgen problemen met de source systemen
+  - worden vaak pas ontdekt achter jaren
+  - kunnen worden opgelost in de DWH of in de operationele DB
+- de data die er nodig is kunnen niet worden gevonden
+- de verhoging van de vraag van de eindgebruikers
+  - de vraag voor meer user friendly, powerful en gesofestikeerde tools
+  - verhoogde load op het IT personeel
+  - betere eindgebruiker training
+- data homogenization
+- de nood aan concurrente ondersteuning in verschillende versies
+- hoge vraag aan bronnen
+  - disk space
+- data ownership
+- hoge onderhouding
+- lange projecten
+  - de development kan soms jaren duren
+- DWH 
+- de complexiteit van de integratie
+- complexe verandering en versie management
+
+### Problemen met Operationele data
+- dirty data
+- missende waarden
+- inconsequente data
+- data wordt niet geïntegreerd
+- verkeerd formaat
+- te veel data
+
+## Design
+### Design van een DWH
+- 2 development methodologieën
+- **Inmon**
+  - de creatie van een data model gebaseerd op alle data van de organisatie
+  - Enterprise Data Warehouse (EDW)
+  - wordt gebruikt om data marts te distilleren voor ieder departement
+  - de traditionele methodes voor het beschrijven van EDW:
+    - ERD
+    - tabellen in normale vorm
+- **Kimball**
+  - dit start met het identificeren van de informatie requirements en de geassocieerde business proccesen van de onderneming => Data Warehouse Bus Matrix
+  - de eerste data mart is kritiek om de scenen te zetten voor de latere integratie van andere data marts, wanneer deze online komen
+  - de integratie van de data marts leiden tot de development van een EDW
+  - gebruik dimensionale modelling om de data modellen te krijgen voor iedere data mart
+
+### Kimball's Business Dimensional Lifecycle
+- Guiding principe
+  - krijg de informatie requirements van de onderneming te weten door het bowen van
+    - single
+    - integrated
+    - easy-to-use
+    - high-performance informatie structuur, 
+- Goal
+  - het verkrijgen van een volledige oplossing door:
+    - de data warehouse
+    - ad hoc query tools
+    - reporting applicaties
+    - geavanceerde analyseringen
+    - alle nodige trainingen en support voor de gebruikers
+
+### Star Schema
+- is een logische structuur dat een fact tabel (bevatten factual data) in het midden heeft, en omringt is door denormalized demension tabellen (bevatten reference data)
+- de fact table bevat data rond de feiten
+  - facts zijn gegeneerd door events dat gebeurt zijn
+  - facts veranderen nooit
+- dimension tabel bevat referentie informatie
+
+### The Fact Tabel
+
+### The Dimension Tabellen
+
+### Snowflake schema
+- een snowflake schema is een variant van het star schema dat een fact tabel heeft in het midden, omringd door normalised dimension tabellen
+
+### Specifieke Schema Problemen
+- surrogate keys
+- granularity van de fact tabel
+- factless fact tables
+- optimizing the dimension tables
+- defining junk demensions
+- defining outrigger tables
+- slowly changing dimensions
+- rapidly chaning dimensions
+
+### Surrogate Keys
+- StoreKey, ProductKey, ShipperKey,...
+
+### Granulatiry van de fact tabel
+- de grootte van detail in 1 rij van de fact tabel
+- hoe hoger de granulariteit, hoe meer rijen
+- hoe lager de granulariteit, hoe minder rijen er zijn
+- compromis moeten maken tussen het level van gedetaileerde analyse en de storage requirements
+
+### Factless Fact Tables
+
+### Optimizing the dimension tabel
+- demension tabellen moeten zeer goed geïndexeerd zijn, zodat de uitvoeringstijd van queries verhoogd kunnen worden
+- gemiddeld tussen 5 en 10 indexen
+
+### Junk Dimensions
+- = een dimensie dat
+
+### Outrigger tabellen
+- een set attribuuttypen van een dimensietabel opslaan die:
+sterk gecorreleerd, laag in kardinaliteit en bijgewerkt
+tegelijkertijd
+
+### Slowly Changing Dimensions
+- dimensies dat traag en irregulair veranderen over een bepaalde tijd
+- er zijn verschillende manieren om dit bij te houden
+
+### Rapidly Changing Dimensions
+
+### Voordelen van een dimensionaal model
+- voorstelbaar en de standaard vorm van de onderliggende model geeft belangrijke voordelen
+  - efficiëntie:
+  - de mogelijkheid om om te gaan met veranderingen in requirements
+  - Uitbreidbaarheid
+    - toevoegen van nieuwe feiten
+    - toevoegven van nieuwe dimensie
+    - toevoegen van nieuwe attributen aan de dimensies
+  - de mogelijkheid van het modelleren van gewone business situaties
+  - voorspelbare qurie processing
+
+### DM en ER Modellen
+- Entity Relationship Diagrams
+  - gebruikt om DB of OLTP system te designen
+  - basis: het verwijderen van redundanties
+  - ad hoc queris zijn moeilijker
+- Dimensional Modelling
+  - gebruikt voor het designen van DWH of data mart
+
+### Dimensional Modelling Stage
+- design problemen
+  - het kiezen van de granulariteit level
+    - type 1: het aantal van dimensies bepaald het level van granulariteit van de analyse dat je krijgt
+    - type 2: iedere order, samengevat bij maand, quarter
+# NoSQL Introduction
+## Understading NoSQL
+### Introduction
+- web applicatie produceren dagelijks enorme hoeveelheden aan data
+- deze data word behandeld door relationele databank management systemen
+  
+### Classical relational database follow the ACID rules
+- een databank transactie moet:
+  - Atomic
+  - Consistent
+  - Isolated
+  - Durable
+  
+### Wat betekent NoSQL
+- NoSQL = Not Only SQL = er is meer dan 1 mechanisme dat er gebruikt kan worden om het maken van een software oplossing
+- Algemene opmerkingen:
+  - gebruikt geen relationeel model
+  - meestal open-source
+  - schemaloos
+  - gemaakt voor 21ste eeuw web estates
+  - draait goed op clusters
+
+### Limitations of NoSQL
+- SQL:
+  - 4O jaar oud => zeer volwassen
+  - switchen tussen 1 relationele databank en een andere relationele databank dan switchen tussen 2 NoSQL databanken
+- iedere NoSQL databank heeft unieke eigenschappen
+  - de developer moet tijd steken in het leren van nieuwe query taal en de consequente semantics
+  
+## Waarom NoSQL databanken?
+### Impedance mismatch
+
+## Algemene eigenschappen van NoSQL databanken
+### De meest voorkomende eigenschappen
+- non-relationeel: 
+- open source
+- cluster friendly
+- 21ste eeuw web
+- schemaloos: een NoSQL databank gebruikt andere datamodellen dan een relationeel model
+
+## Types van NoSQL databanken
+### Overview
+- NoSQL databanken kunnen grotendeels onderverdeel worden in 4 categorieën
+  - key-value databanken
+  - document databanken
+  - kolom familie databanken
+  - grafiek databanken
+### Type 1: Key-Value Databanken
+- zijn de simpelste NoSQL data stores
+- het zoals een hashmap maar bij het grootste deel van tijd is het persistent op de disk
+- de databank weet niks over de waarde
+- ze gebruiken altijd primaire-key toegang, voor verbeterde performantie
+- een paar populaire key-value stores
+  - Riak
+  - Redis
+  - Memcached
+  - DynamoDB
+  - ...
+- sommige zijn persistent op de disk
+- sommige zijn niet persistent op de disk
+  - als een node door alle data gaat, dan gaat deze verloren en moet de data opnieuw gerefreshed worden van het bronnensysteem
+- de meeste API volgende functies
+  - get(key): deze functie retourneert de waarde die bij deze key werd bijgehouden
+  - put(key, value): voegt een record toe
+  - delete(key): deze functie verwijdert de (key, value) record met de gegeven key
+- er is geen functie om de date te veranderen
+- geen adhoc zoekingen of data-analyse
+
+### Document stores
+- een document databank denkt aan een databank als een opslag van een grote massa aan verschillende documenten
+- ieder document is een complexe data structuur (JSON, XML, BSON)
+- deze document bevatten componenten dat allemaal een naam en een waarde heeft
+- de naam van dit component moet uniek zijn voor ieder document
+- iedere documetn heeft een key-component, waarvoor de waarde uniek is over de volledige databank
+- de documenten die opgeslagen worden zijn ongeveer gelijk aan elkaar maar zijn niet volledig aan elkaar gelijk
+- je kan wel querien in een document databank
+- populaire document databanken
+  - MongoDB
+  - CouchDB
+- de meest moderne NoSQL databanken kiezen voor de documenten te tonen in JSON
+
+### Column Family Databases
+- column family databanken slaan de data op in kolomfamilies
