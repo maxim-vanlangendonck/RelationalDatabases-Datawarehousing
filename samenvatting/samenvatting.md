@@ -1,3 +1,15 @@
+# Relational Databases & Datawarehousing
+| Inhoudstafel  |
+| :---  |
+| 1.[SQL Review](#1sql-review)
+| 2.[SQL Advanced](#2sql-advanced)|
+| 3.[Window Functions](#3windows-functions)|
+| 4.[DB Programming](#)|
+| 5.[Indexen](#5indexes-and-performance)|
+| 6.[Basics of Transaction Management](#6basics-of-transaction-management)|
+| 7.[DWH + BI](#7-datawarehousing--business-intelligence-bi)|
+| 8.[NoSQL](#8-nosql-introduction)|
+
 # 1.SQL Review
 ## SQL sub languages
 ### Data Definition Language (DDL)
@@ -333,7 +345,7 @@ ORDER BY CategoryID, ProductID
   AVG(Salary) OVER (ORDER BY Salary DESC ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS AvgSalary2Preceding
   FROM Employees
 
-# 4.Database Programming
+# 4. Database Programming
 ## SQL as complete language (PSM)
 ### Persistent Stored Modules
 
@@ -726,9 +738,9 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 
 ## Recovery
 ### Types of Failures
-- **transaction failure**
-- **System Failure**
-- **Media Failure**
+- **transaction failure**: resulteert uit een error in de logica dat 
+- **System Failure**: komt voor wanneer het besturingssysteem of het database systeem crasht
+- **Media Failure**: komt voor als de secundaire storage kapot is of onbeschikbaar is
 
 ### System Recovery
 - in het geval van het falen van een systeem, 2 types van transacties
@@ -752,9 +764,9 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 ### Typical Concurrency Problems
 - een scheduler is verantwoordleijk voor het pannen van de uitvoering van de transacties en zijn operaties
 - problemen
-  - **lost update**: 
-  - **uncommitted dependency (dirty read)**
-  - **inconsistent analysis**
+  - **lost update**: komt voor wanneer een andere succesvolle update van een data item door een transactie overschreven wordt door een andere transactie die niet aware was van de eerste update
+  - **uncommitted dependency (dirty read)**: als een transactie 1 of meerdere data items leest, dat geüpdate wordt door een ander (nog te commite) transactie
+  - **inconsistent analysis**: 
   - **nonrepeatable read**
   - **phantom reads**
 ![Concurrency Problems](img/image5.png)
@@ -838,7 +850,7 @@ CREATE [UNIQUE] [| NONCLUSTERED]
   - een mogelijke backup strategie: volledige backups op zondagnacht en daarna incremental backup op andere nachten
   - Restore: de laatste volledige backup + subsequente incrementele backup, kan zeer veel tijd in beslag nemen
 
-# Datawarehousing + Business Intelligence (BI)
+# 7. Datawarehousing + Business Intelligence (BI)
 ## Introductie
 ### Business Intelligence: definitie
 - Business Intelligence(BI) comprises the set of strategies, processes,
@@ -881,16 +893,24 @@ analytics.
 - DatastageETL
 - QlikView rapportering
 
-### Datawarehous: definitie
+### Datawarehouse: definitie
 - A data warehouse is an integrated, subject oriented, time
 variant and non volatile collection of data to support decisions
 taken on management level.
-- **subject oriented**
-### eigenschappen
-- **time**
-- **integrated**
-- **non volatile**
-- **aggregated data**
+### eigenschappen van een datawarehouse
+- **subject oriented**:  
+  - de warehouse is georganiseerd rond de grootste onderwerpen van het bedrijf, anders dan de grootste applicatie omgevingen
+  - dit komt doordat er nood is aan het opslaan van beslissing-ondersteunde data ipv applicatie-georienteerde data
+- **time**:
+  - de data in de warehouse is alleen accuraat en juist op 1 punt in de tijd of over een tijdsinterval
+  - de time-variance wordt ook getoond in het tijd dat de data is bijgehouden, de impliciete en expliciete associatie van tijd met alle data, en het feit dat de data een serie van snapshots representeert
+- **integrated**:
+  - de data warehouse integreert bedrijfs applicatie-gerichte data van verschillende bronsystemen, deze bevat vaak inconsiquente data
+- **non volatile**:
+  - de data in de warehouse is niet vaak geüpdate in RT (Real-Time) maar worden gerefresht van de operational systems op een reguliere basis
+  - nieuwe data wordt altijd toegevoegd als een supplement aan de databank, dan een vervanging
+- **aggregated data**:
+  - gegenereerd dooor GROUP BY
 
 ### goals of DWH
 - reporting
@@ -898,13 +918,18 @@ taken on management level.
 - data mining
 - empowerment van de end user door het geven van versimpelde reporting tools
 - prediction gebaseerd op trend analysering
+- multi dimensionale reporting
 
 ### voordelen van DHW
 - hoge ROI (Return on Investment)
 - Competitive advantage
   - beslissingsmakers hebben toegang tot data die oorspronkelijk niet beschikbaar, onbekend of ongebruikt was
 - verhoogde productiviteit van de onderneming beslissingsnemers
+  - beslissingsmakers krijgen een consiquent zicht op het bedrijf
+  - beslissingsmakers kunnen een meer substantiele, meer accuratere en meer consiquente analyse maken
 
+### Vergelijk van OLTP systemn en Data Warehousing
+![Vergelijking van OLTP systemen en Data Warehousing](img/image12.png)
 ## Architectuur
 ### DHW componenten
 ![DHW componenten](img/image8.png)
@@ -1021,7 +1046,7 @@ taken on management level.
 
 ### Kimball's Business Dimensional Lifecycle
 - Guiding principe
-  - krijg de informatie requirements van de onderneming te weten door het bowen van
+  - krijg de informatie requirements van de onderneming te weten door het bouwen van
     - single
     - integrated
     - easy-to-use
@@ -1035,14 +1060,15 @@ taken on management level.
     - alle nodige trainingen en support voor de gebruikers
 
 ### Star Schema
-- is een logische structuur dat een fact tabel (bevatten factual data) in het midden heeft, en omringt is door denormalized demension tabellen (bevatten reference data)
+- is een logische structuur dat een fact tabel (bevatten factual data) in het midden heeft, en omringt is door denormalized dimension tabellen (bevatten reference data)
 - de fact table bevat data rond de feiten
   - facts zijn gegeneerd door events dat gebeurt zijn
   - facts veranderen nooit
 - dimension tabel bevat referentie informatie
 
 ### The Fact Tabel
-
+- een bulk van gegevens in de data warehouse 
+- belangrijk is om deze fact data te behandelen als een lees-alleen referentie data, dat niet wil veranderen doorheen te tijd
 ### The Dimension Tabellen
 
 ### Snowflake schema
@@ -1060,6 +1086,11 @@ taken on management level.
 
 ### Surrogate Keys
 - StoreKey, ProductKey, ShipperKey,...
+- zinloze getallen
+- kunnen geen business keys gebruiken want deze hebben vaak een business meaning
+- surrogate keys buffer de data warehouse van de operationele omgeving
+- business keys zijn vaak groter
+- business keys worden vaak opnieuw gebruikt doorheen een langere periode van tijd
 
 ### Granulatiry van de fact tabel
 - de grootte van detail in 1 rij van de fact tabel
@@ -1070,11 +1101,11 @@ taken on management level.
 ### Factless Fact Tables
 
 ### Optimizing the dimension tabel
-- demension tabellen moeten zeer goed geïndexeerd zijn, zodat de uitvoeringstijd van queries verhoogd kunnen worden
+- demension tabellen moeten zeer goed geïndexeerd zijn, zodat de uitvoeringstijd van queries verbeterd kunnen worden
 - gemiddeld tussen 5 en 10 indexen
 
 ### Junk Dimensions
-- = een dimensie dat
+- = een dimensie die eenvoudigweg alle mogelijke combinaties van waarden van de lage kardinaliteit attribuut types opsomt
 
 ### Outrigger tabellen
 - een set attribuuttypen van een dimensietabel opslaan die:
@@ -1111,8 +1142,9 @@ tegelijkertijd
   - het kiezen van de granulariteit level
     - type 1: het aantal van dimensies bepaald het level van granulariteit van de analyse dat je krijgt
     - type 2: iedere order, samengevat bij maand, quarter
-# NoSQL Introduction
-## Understading NoSQL
+
+# 8. NoSQL Introduction
+## Understanding NoSQL
 ### Introduction
 - web applicatie produceren dagelijks enorme hoeveelheden aan data
 - deze data word behandeld door relationele databank management systemen
@@ -1142,6 +1174,22 @@ tegelijkertijd
   
 ## Waarom NoSQL databanken?
 ### Impedance mismatch
+- Impedance mismatch
+  - in software:
+  - in databanken:
+- een NoSQL databank laat developers toe om dingen te maken zonder in-geheugen structuren te moeten omzetten in relationele structuren
+
+### Wat is er veranderd in het voordel van NoSQL?
+- de verhoging van gebruik van het web als platform => grotere volumes van data die runnen op clusters
+- relationele databanken zijn niet gemaakt om:
+  - om efficient te werken op clusters
+  - zo zulke grote hoeveelheden aan data te verwerken
+- de opslag van data heeft een ERP applicatie nodig
+- omdat je grote hoeveelheden hebt, zal je moeten dingen schalen
+  - je kunt vergroten door te werken met een grote dozen
+    - het kost te veel
+  - je kunt kleine verschillende dozen gebruiken, en in grote grids gezet
+    - relationele databanken zijn niet gemaakt om efficient te werken op clusters. Het is zeer moeilijk om relationele databanken te verspreiden en ze te laten runnen op clusters
 
 ## Algemene eigenschappen van NoSQL databanken
 ### De meest voorkomende eigenschappen
@@ -1150,6 +1198,13 @@ tegelijkertijd
 - cluster friendly
 - 21ste eeuw web
 - schemaloos: een NoSQL databank gebruikt andere datamodellen dan een relationeel model
+  
+### Gevolgen van schemaloos
+- zo goed als iedere NoSQL databanken zijn gemaakt om te kunnen werken zonder set schema
+- in relationale datbanken kun je enkel maar data steken zolang deze in het schema past
+- geen schema => is gemakelijker data te migreren over tijd
+- een impliciet schema
+  - er is geen strikt schema
 
 ## Types van NoSQL databanken
 ### Overview
@@ -1193,4 +1248,98 @@ tegelijkertijd
 - de meest moderne NoSQL databanken kiezen voor de documenten te tonen in JSON
 
 ### Column Family Databases
-- column family databanken slaan de data op in kolomfamilies
+- column family databanken slaan de data op in kolomfamilies als rijen dat evenveel kolommen heeft die geassocieerd zijn met een rij-sleutel
+- kolomfamilie's zijn een groep van gerelateerde data dat vaak samen bereikt wordt
+- in een rij-geörienteerde relatie is iedere rij een entiteit
+- de relatie heeft een schema dat de attributen bescrhijft van iedere entiteiten
+- een kolom-geörienteerde relatie van iedere is enkel maar een component van een entiteit
+- de componenten zijn gegroepeerd in kolomfamilie's die aan volgende regel voldoen: componenten dat vaak aangepast of opgevraagd worden, zijn samen gegroepeerd in dezelfde kolom familie
+- een paar mogelijke instructies:
+  - get(Column_family, Row_id, Column_name, Version)
+  - insert(Column_family, Row_id, Column_name, Version, Column_value)
+  - delete(Column_family, Row_id, Column_name, Version, Column_value)
+  - => gemakkelijk, want ze zijn gebaseerd op de SQL SELECT-FROM-WHERE instructies
+- populairste kolom familie databanken
+  - Cassandra
+  - Hbase
+  - ...
+- **Vergelijking**
+  - performantie
+  - schaalbaarheid
+  - flexibiliteit
+  - complexiteit
+  - functionaliteit
+
+|   x|  Key-value databank | Document databanken | Kolom Familie databanken  | Relationele databanken  |
+|:---|:---|:---|:---|:---|
+| Performantie  | zeer hoog  | hoog | hoog  | gemiddeld |
+| Schaalbaarheid  | zeer hoog | hoog/gemiddeld  | hoog  | gemiddeld |
+| Flexibiliteit | zeer hoog | hoog  | gemiddeld | laag  |
+| Complexiteit  | geen  | variabel  | laag  | hoog  |
+| Functionaliteit | geen  | gemiddeld/hoog  | laag  | hoog  |
+
+- **Aggregate - Oriented Database**
+  - soorten:
+    - sleutel-waarde databanken
+    - document databanken
+    - kolom-familie databanken
+  - met deze soort databanken laat je toe op grote complexe structuren op te slaan
+  - wanneer we dingen moeten modelleren, dat groeperen we dingen tesamen in natuurlijke aggregaten
+  - wanneer we dingen willen opslaan in een relatinele databank,
+  - dit is zeer handig als we spreken over het systeem te laten runnen over verschillende clusters omdat je data wilt verdelen
+  - als je de data verdeeld, wil je deze data verdelen dat vaak samen aangesproken wordt. De aggregaat zegt welke data er vaak samen wordt aangevraagd
+  - wanneer je de data nodig hebt, dan ga je naar 1 node op de cluster ipv de data op te nemen op de verschillende rijen vna de verschillende tabbelen
+- **Distributie modellen**
+  - een aggregate oriented databank laten toe het verdelen van de data te vergemakkellen, omdat de verdeling mechanisme is verplaatst naar de aggregate en hij moet zich niet bezig houden met gerelateerde data
+  - 2 stijlen van distributing data
+    - Sharding: verdeeld verschillende data onder meerdere servers, iedere server is zoals een enkele bron voor een subset van data
+    - Replication: kopieert de data over meerdere servers, zodat iedere bit van data kan gevonden worden in verschillende en meerdere plaatsen
+      - Master - slave replication
+      - peer-to-peer replication
+
+### Grafriek gebaseerde databank
+- zijn niet aggregate geörienteerd
+- een node en arc graph structuur
+- niet alleen de data in nodes zijn belangrijk, maar ook de relatie tussen de nodes zijn belangrijk. Je kan springen tussen verschillende relaties
+- nodes kunnen verschillende types van relaties hebben tussen elkaar
+- de relatie's hebben niet enkel een type, een start node en een end node maar kunnen ook eigenschappen hebben van zichzelf
+- deze databanken worden gebruikt voor data dat meerdere relaties heeft
+- verschillende grafiek databanken
+  - Neo4J
+  - Infinite Graph
+  - ...
+
+## NoSQL and Consistency
+### Introductie
+- relationele zijn ACID
+- als je 1 eenheid van informatie hebt en je wilt deze verdelen over verschillende tabellen. Je wilt niet dat jij een helft van de informatie schrijft en de andere helft door iemand anders
+- dat is waar transacties omdraait
+- Graph databanken volgen normaal gezien ACID updates
+- bekijk voorbeeld slides 49 - 60
+
+### Consistency and availability
+- logische samenhang: deze samenhang problemen komen voor wanneer je draait op 1 machine of op een cluster
+- 
+### CAP theorem
+- in de meeste NoSQL databanken zijn complexe aspecten van transactie processing worden overboord gesmeten voor meer snelheid
+- daardoor zijn NoSQL systemen meestal gerefereerd met No ACID systemen
+- de verantwoordelijkehid voor de integriteit van de data veranderd van de DBMS naar de applicatie
+- de DBMS zal hierdoor sneller worden, maar de applicatie zal meer tijd nodig hebben om de data te valideren
+- **Consistency**: de data in de databank blijft consiquent achter de uitvoering van een operatie. In een verdeelde context betekent dit dat achter een update operatie de kopie's dezelfde data bevatten
+- **Availability**: Het systeem is altijd aan, zonder downtime. Als een node of andere hardware of softwarecomponenten faalt, dan moet de DBMS in staat zijn om te blijven werken en te blijven verder werken om die replica's van de andere nodes
+- **Partition Tolerance**: het systeem blijft werken zelfs als de communicatie tussen de servers onbetrouwbaar blijkt te zijn. 
+
+![CAP theorem](img/image11.png)
+
+- NoSQL databanken zijn gedistributeerde systemen
+- je moet altijd in gedachte houden dat het netwerk kan falen, hierdoor heb je 2 keuzes:
+  - oftewel wil je consiquent zijn (Consistency / Partition Tolerance (CP)): als de NoSQL DBMS consiquent moet zijn, dat moeten de transacties en ACID eigenschappen zijn nodig. De DBMS zal trager zijn, door de wachtijden, time-outs en de error berichten dat nodig zijn wanneer data consiquentie niet gegarandeerd kunnen worden
+  - oftewel wil je beschikbaar zijn (Availability/Partition Tolerance (AP)): als de NoSQL DBMS altijd beschikbaar moet zijn dan zal deze sneller zijn want de DBMS zal altijd werken met de meeste recente versie van de data, zelfs als er niet gegarandeerd kan worden dat deze data effectief juist is
+### BASE
+- AP NoSQL databank heeft BASE eigenschappen
+  - **Basic Availability**: de beschikbaarheid van de data is belangrijker dat de consiquentie. De databank zal meestal beschikbaar zijn
+  - **Soft-state**: de databank is niet altijd in een consiquente staat. De validatie van de data is uitgesteld aan de applicatie en het is mogelijk dat de veranderingen aan de data worden niet onmiddelijk beschikbaar gemaakt op die kopie's
+  - **Eventual consistency**: Na een tijd zal de validatie van de data gebeuren en de veranderingen zullen beschikbaar zijn op iedere kopie's. Op een moment in de toekmst zal de databank wel consiquent zijn
+## Summary
+### Polyglot persistence
+### Waarom zou je NoSQL gebruiken?
