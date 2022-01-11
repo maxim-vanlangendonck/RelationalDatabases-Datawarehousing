@@ -766,16 +766,45 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 - problemen
   - **lost update**: komt voor wanneer een andere succesvolle update van een data item door een transactie overschreven wordt door een andere transactie die niet aware was van de eerste update
   - **uncommitted dependency (dirty read)**: als een transactie 1 of meerdere data items leest, dat geüpdate wordt door een ander (nog te commite) transactie
-  - **inconsistent analysis**: 
-  - **nonrepeatable read**
-  - **phantom reads**
+  - **inconsistent analysis**: waar een transactie een deel van de resultaten van een andere transactie leest, dan simultaan dezelfde data item gebruikt
+  - **nonrepeatable read**: komt voor wanneer een transactie t1 dezelfde rij meerdere keren leest, maar krijgt verschillende sebsequente waarden omdat de andere transactie t2 deze rij update op hetzelfde moment
+  - **phantom reads**: kan voorkomen wanneer een transactie t2 een insert of delete transactie uitvoert op een set van rijen dat door transactie t1 werd gelezen
+
 ![Concurrency Problems](img/image5.png)
 
 ## Schedules
 ### Schedules and Serial Schedules
-- een schedule S is een set van n transacties
+- Een schema S is een set van n transacties en een sequentiële bestellen over de overzichten van deze transacties, voor die de volgende eigenschap bezit: “Voor elke transactie T die deelneemt aan een schema S en voor alle uitspraken si en sj die bij hetzelfde horen transactie T: als statement si voorafgaat aan statement sj in T, dan is si gepland om te worden uitgevoerd vóór sj in S.”
+- een schedule behoud de orde van individuele statements in 1 transactie maar laat toe voor een verschillende orde van statement tussen 2 of meerdere transacties
+- een schedule S is serial als alle statements s, van dezelfde transactie T zijn opeenvolgend gepland, zonder enige tussenvoegen met verklaringen van een andere transactie
+- serial schedules houden parallelle transactie uitvoering tegen
+- we hebben een non-serial, correcte schedule
+
+- een **serializable** schedule is een non-serial schedule die equivalent is aan een serial schedule
+
+### Serializable Schedules
+![Serializable schedule](img/image13.png)
+- om te testen of een schedule serializabel, kun je gebruik maken van een graaf
+  - als de graaf een cykel bevat, dan is de schedule niet serializable
 
 ### Optimistic and Pessimistic Schedulers
+- een scheduler past een scheduling protocol toe
+- **Optimistic protocol**
+  - conflicten tussen 2 simultane transacties zijn exceptioneel
+  - operaties van de transacties zijn gepland zonder delay
+  - wanneer een transactie klaar is om te committen, zijn deze geverifieerd voor de conflicten
+  - als er geen conflicten zijn, wordt de transactie gecommit. Zo niet, rolled back
+- **Pessimistic protocol**
+  - is bijna zeker dat de transacties zullen interferen met elkaar en zo conflicten zal veroorzaken
+  - de uitvoering van de transactie's operaties worden uitgesteld totdat de scheduler de operatie kan inplannen zodat de kans op conflicten minimaal is
+  - zal de throughtput verlagen
+  - bv. serial scheduler
+- locking kan gebruikt worden voor optimistic en pessimistic scheduling
+  - pessimistic scheduling: locking wordt gebruikt om simultaniteit van de uitvoering van transacties te limiten
+  - optimistic scheduling: locks worden gebruikt om conflicten te detecteren tijdens de uitvoering van een transactie
+- timestamping
+  - lees en schrijf timestamps zijn attributen geassocieerd met een databank object
+  - timestamps worden gebruikt om ervoor te zorgen dat een set van transacties operaties zeker uitgevoerd worden in juiste volgorde
 
 ## Locking and Locking Protocols
 ### Purposes of Locking
@@ -790,6 +819,21 @@ CREATE [UNIQUE] [| NONCLUSTERED]
   - het geven en krijgen van de lock gebeurt in 2 fases
     - growth phase: locks kunnen gekregen worden maar niet vrijgegeven worden
     - shrink phase: locks worden stap voor stap vrijgegeven, en er worden geen nieuwe locks meer gegeven
+- als een transactie een object wilt updaten, dan heeft deze een exclusieve lock nodig
+  - kan hij enkel maar krijgen wanneer geen andere transacties geen enkele lock heeft op dit object
+- compatibility matrix
+![Compatibility Matrix](img/image14.png)
+
+- lock manager implementeert het locking protocol
+  - een set van regels die vastlegt wanneer welk lock gegeven kan worden
+- lock manager gebruikt ook een lock tabel
+- de lock manager moet de eerlijkheid van de transactie scheduling verzekeren
+- 2PL Locking protocol werkt als volgt:
+  - voor een transactie een databank object kan lezen (updaten), zal hij een een shared(exclusive) lock nodig op dat object
+  - lock manager bepaalt of de gevraagde lock gegeven kunnen worden obv de compatibility matrix
+  - het krijgen en vrijgeven van lock gebeurt in 2 fases:
+    - growth fase: locks kunnen gegeven worden maar niet vrijgegeven
+    - shrink fase: locks kunnen deeltje per deeltje vrijgegeven worden, maar geen nieuwe lock kunnen gekregen worden
 
 ### Two-Phase Locking Protocol (2PL)
 - varianten:
@@ -800,35 +844,63 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 
 ### Cascading Rollback
 - herbekijkt de ungecommited dependency probleem
-  - het probleem is opgelost wanneer T2 alle lock bijhoudt tot het 
+  - het probleem is opgelost wanneer T2 alle lock bijhoudt tot het
+  - met 2PL prtocol, locks kunnen al vrijgegeven worden voordat de transactie gecommit of gefaald word (shrink fase)
+- voor transactie T1 gecommit kan worden, moet de DBMS ervoor zorgen dat alle transacties dat veranderingen gemaakt heeft aan data items, dat ingelezen werden door T1 als eerst gecommit worden
+- als t2 gerolled back worden, zullen alle ungecommitte Tu dat waarden ingelezen heeft van T2 gerolled back worden
+- alle transacties dat in hun beurt waarden heeft ingelezen van transactie Tu, zal deze ook gerolled back moeten worden
+- cascading rollback moeten recursief toegepast worden
+  - kan tijd-nemend zijn
+  - beste manier om dit tegen te houden, voor alle transacties hun locks bijhouden tot dat ze een gecommite state hebben (rigorous 2PL)
+
 ### Dealing with Deadlocks
 - komt voor wanneer 2 of meerdere transacties aan het wachten zijn voor dat een anders lock wordt vrijgegeven
 - Deadlock preventie kan worden bereikt door static 2PL
   - de transactie moet alle locks hebben voordat ze kan starten
 - detectie en resolutie
-  - wac
+  - wacht totdat de graaf bestaat uit nodes 
+  - deadlock bestaat al het wachten op de graaf een cykel bevat
+  - victim selectie
+
 ### Isolation Levels
+- de level van transactie isolatie gegeven door 2PL kunnen te streng zijn
+- de beperkte hoeveelheid van interferentie kan acceptabel zijn voor betere throughput
+- long-term lock is gegeven en vrijgehouden door het protocol, en is 
+- een korte-term lock wordt enkel maar bijgehouden tijdens het tijd interval dat nodig is om het geassocieerde operatie te voltooid is
+  - het gebruik van short-term lock vechten tegen regel 3 van het 2PL protocol
+  - kan gebruikt worden om throughput te verbeteren
 - **Reader**: een statement dat data leest door gebruikt te maken van een shared lock (SELECT)
 - **Writer**: statement dat data schrijft, door gebruikt te maken van een exclusieve lock (INSERT, UPDATE, DELETE)
 - writers kunnen niet beïnvloed worden in SQL Server met respect nara de locks dat ze claimen en de duur van deze locks. Zij claimen altijd een exclusieve lock
-  - lezers kunnen expliciet beïnvloed worden
-  - gebruikt makend van de isolatie levels
-- de isolation level in sql server
-  - READ UNCOMMITTED
+- lezers kunnen expliciet beïnvloed worden
+- gebruikt makend van de isolatie levels
+### De isolation levels in sql server
+  - **READ UNCOMMITTED**
     - laagste isolatie level
     - de lezer vraagt niet achter shared lock
     - lezer is nooit in conflict met de schrijver
     - lezer leest ongecommitted data (= dirty read)
-  - READ COMMITTED
+  - **READ COMMITTED**
     - standaard isolatie level
     - laagste level dat dirty reads tegengaat
     - de lezer leest enkel maar gecomittete data
     - lezer claimt een shared lock
     - als op de moment de schrijver een exclusieve lock in zijn bezit heeft, dan moet de lezer wachten voor een shared lock
-  - REPEATABLE READ
-  - SERIALIZABLE
+  - **REPEATABLE READ**
+    - de lezer claimt shared lock en houdt deze tot het eind van de transactie (=long-term lock)
+    - andere transacties kunnen geen exclusieve lock krijgen tot het eind van de transactie van de lezer
+    - herhalend read = consiquente analyse
+    - vermijd ook een lost updates door het claimen van shared lock aan het begin van een transactie
+  - **SERIALIZABLE**
 
 ![Isolation level in SQL Server](img/image7.png)
+
+### Isolatie level: query level
+
+### Lock Granularity
+- databank object voor locking kan een tuple, een kolom, een table, een tablespace, een disk block, etc. zijn
+- trade-off tussen locking overhead en transactie throughput
+- de meeste DBMSs geven de optie om een optimaal granulariteit level dat beslist is door het databank systeem
 ## ACID
 ### ACID Properties of Transactions
 - ACID staat voor Atomicity, Consistency, Isolation en Durability
@@ -845,7 +917,7 @@ CREATE [UNIQUE] [| NONCLUSTERED]
 - op een regelmatige momenten worden de data en logfiles automatisch gekopieerd naar een veilige locatie
   - zonder het systeem te moeten stoppen
   - de kopies worden opgeslagen op een offline storage
-- 2 
+- 2 benaderingen
   - complete back-up of incremental back-up
   - een mogelijke backup strategie: volledige backups op zondagnacht en daarna incremental backup op andere nachten
   - Restore: de laatste volledige backup + subsequente incrementele backup, kan zeer veel tijd in beslag nemen

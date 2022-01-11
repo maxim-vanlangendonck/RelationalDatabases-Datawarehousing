@@ -1,0 +1,46 @@
+-- SQL Advanced 2 TIN --
+-- 1. What are the entertainers without anay engagements up till now and which are available in the database.
+-- 2. What are the entertainers without any engagements for 2016?
+-- 3. What are the music styles for which we don't have any entertainer available in the database?
+-- 4. What are the music styles for which we don't have any entertainer available in the database with StyleStrength = 1?
+-- 5. What is the musical style for which we have most entertainers available in the database? Don't take into account the style strength.
+-- 6. Who is the most important customer based on the number of engagements?
+-- 7. What are the customers that have booked the same entertainer every year.
+-- 8. For each customer, provide a list of entertainers that they have booked, but whose music styles do not belong to their preferences. The image below shows only a part of the resultset.
+-- 9. What is the number of engagements per season? Use Startdate to determine the season. Winter : december + january + february / Spring = march + april + may / Summer = … Order by the number of engagements in ascending way.
+-- 10. We are looking for a Salsa group. Which entertainer is the cheapest one?
+-- 11. We are looking for a Salsa group. Which entertainer is the most popular one?
+-- 12. A member can be part of more than 1 entertainer. We assume that the contractprice per engagement
+	-- is distributed fairly among all members of an entertainer. Calculate the total revenue per member.
+	-- Order by the total revenue per member in descending way.
+	-- The image below shows only a part of the resultset.
+	-- Tip: calculate the number of members per entertainer first.
+-- 13. We are receiving signals that prices in the sector have risen exuberantly. We want to verify this with data.
+	-- Therefore, make the overview below where the price for an engagement is compared between 2015
+	-- and 2016 only for engagements with the same customer, the same entertainer and the same number
+	-- of days
+	-- Extension: How often have we noted a price increase, a price decrease and a tie?
+-- 14. Give for each year the top 3 of most popular entertainers (= entertainers with most engagements for that year)
+-- 15. We are wondering if an entertainer was more popular in 2015 compared to 2016 (= if an entertainer
+	-- had more engagements in 2015 than in 2016).
+	-- Calculate the number of engagements per entertainer per year. The image below shows only a part of
+	-- the resultset.
+	-- Extension: Change the previous overview into the following overview
+	-- Extension: Change the previous overview into the following overview
+-- 16. Create the following overview for each entertainer: the total revenue per month en the running total
+	-- per year. The image below shows only a part of the resultset.
+-- 17. We are wondering if there is somehow a correlation between the EntPricePerDay of an entertainer and
+	-- the popularity of the entertainer: is the most expensive entertainer the one with the fewest or the
+	-- most engagements?
+	-- Create the following overview to get an idea. Order the resultset by EntPricePerDay in a descending
+	-- way.
+	-- Tip: calculate the number of engagements per entertainer first. The column RelativePart is calculated
+	-- based on the number of engagements of each entertainer.
+-- 18. We want to know for each entertainer if they got theirselves a raise between 2015 and 2016.
+	-- Calculate for each entertainer the averge dayprice per engagement (based on the contractprice and the
+	-- number of days) per year. The image below shows only a part of the resultset.
+	-- Extension: Change the previous overview into the following overview
+	-- Extension: Change the previous overview into the following overview to get the relative raise per entertainer
+-- 19. What is total number of males and females per music style. Only take into account StyleStrength = 1.
+	-- Create the following overview. The image below shows only a part of the resultset.
+	-- Extension: Calculate the percentage of females and males per music style

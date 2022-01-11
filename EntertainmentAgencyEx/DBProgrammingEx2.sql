@@ -1,0 +1,10 @@
+-- Exercise 2
+-- Write a SP delete_musical_style to delete a new musical style, given the stylename of the new musical style
+-- (= parameter).
+-- First check if the stylename exists. If not so throw an error.
+-- Then check if there are Entertainers with this musical style. If so, throw an error
+-- Then check if there are Customers with this musical style. If so, throw an error
+-- Delete the musical style
+-- Use an output parameter to pass the result back to the user: 1 if the delete succeeded and 0 if the delete
+-- didn't succeed
+-- Write testcode to try to delete the following styles: Chamber Music, Elvis, Variety
