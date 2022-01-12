@@ -324,7 +324,7 @@ ORDER BY CategoryID, ProductID
   - de som is uitgerekend voor iedere partities
   
 ## RANGE
-- de echte bedoleing van windows functions: het aanstellen tot een windows dat over een result set shifts
+- de echte bedoeling van windows functions: het aanstellen tot een windows dat over een result set shifts
 - met RANGE, 3 opties:
   - `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`
   - `RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING`

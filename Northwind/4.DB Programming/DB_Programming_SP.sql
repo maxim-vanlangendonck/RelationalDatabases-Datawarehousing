@@ -11,14 +11,6 @@ CategoryName = Grains/Cereals
 Number of products =          7
 Average Unit price =         20
 */
-
-
-
-
-
-
-
-
 -- Exercise: Write a function that calculates the netto salary per month for each employee
 -- If salary < 4000 EUR per month => tax is 30%
 -- If salary < 5500 EUR per month => tax is 35%
@@ -105,7 +97,18 @@ PRINT 'The number of invovled customers = ' + STR(@numberOfInvolvedCustomers)
 -- 10249	14			18,60		9			0
 -- 10249	51			42,40		40			0
 
-CREATE PROCEDURE InsertProduct ()
+CREATE PROCEDURE InsertProduct (@orderID INT,
+@productID INT, @unitPrice Money = NULL, @quantity SMALLINT,
+@discount REAL = NULL)
+AS
+
+IF @orderID IS NULL
+BEGIN
+	PRINT 'The OrderID can''t be null'
+	RETURN
+END
+
+IF
 
 
 

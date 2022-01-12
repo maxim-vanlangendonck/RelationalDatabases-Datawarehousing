@@ -21,7 +21,33 @@ South America
  - Total population = 433,950,159
 */
 
+SELECT continent, COUNT(DISTINCT country) AS Number_Of_Countries, SUM(CAST(population AS BIGINT)) AS Total_Population
+FROM countries
+GROUP BY continent
 
+DECLARE @continent varchar(100), @number_of_countries int, @total_population bigint
+
+DECLARE corona_cursor_5 CURSOR FOR
+SELECT continent, COUNT(DISTINCT country) AS Number_Of_Countries, 
+SUM(CAST(population AS BIGINT)) AS Total_Population
+FROM countries
+GROUP BY continent
+
+OPEN corona_cursor_5
+FETCH NEXT FROM corona_cursor_5 INTO @continent, @number_of_countries, @total_population
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT @continent
+		PRINT ' - Number of countries = ' +
+str(@number_of_countries)
+		PRINT ' - Total population = ' + 
+format(@total_population, 'N0')
+		FETCH NEXT FROM corona_cursor_5 INTO @continent, 
+		@number_of_countries, @total_population
+	END
+CLOSE corona_cursor_5
+
+DEALLOCATE corona_cursor_5
 
 
 -- Exercise 2: Give per continent a list with the 5 countries with the highest number of deaths
@@ -33,13 +59,56 @@ South America
 -- - Oceania
 -- - South America
 
+--sql statement
+SELECT DISTINCT continent
+FROM Countries
+--cursor
+DECLARE @continent varchar(50)
+
+DECLARE cursor_corona_3 CURSOR FOR
+SELECT DISTINCT continent
+FROM Countries
+
+OPEN cursor_corona_3
+FETCH NEXT FROM cursor_corona_3 INTO @continent
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT ' - ' + @continent
+		FETCH NEXT FROM cursor_corona_3 INTO @continent
+	END
+
+CLOSE cursor_corona_3
+DEALLOCATE cursor_corona_3
+
 -- Step 2: Give the countries with the highest number of deaths for Africa. First give the SQL statement, then use a cursor to get the following layout
 -- South Africa      87001
 -- Tunisia      24732
 -- Egypt      17149
 -- Morocco      14132
 -- Algeria       5767
+DECLARE @country varchar(50), @new_deaths int
 
+DECLARE cursor_corona_4 CURSOR FOR
+SELECT TOP 5 c.Country, SUM(ISNULL(cd.new_deaths, 0))
+FROM Countries c JOIN CovidData cd ON c.Country = cd.Country
+WHERE c.continent = 'Africa'
+GROUP BY c.country
+ORDER BY 2 DESC;
+
+OPEN cursor_corona_4
+
+FETCH NEXT FROM cursor_corona_4 INTO @country, @new_deaths
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT  @country + ' ' + str(@new_deaths)
+		FETCH NEXT FROM cursor_corona_4 INTO @country, @new_deaths
+	END
+CLOSE cursor_corona_4
+DEALLOCATE cursor_corona_4
+		
+	END
 -- Step 3: Combine both cursors to get the following result
 /*
  - Africa
@@ -79,6 +148,7 @@ Colombia     126102
 Argentina     114849
 Chile      37432
 */
+OPEN cursor_corona_3 INTO @continent
 
 -- Step 4: Replace the TOP 5 values by a cte with dense_rank
 
@@ -131,11 +201,33 @@ Chile      37432
 - 38    xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 - 39    xxxxxxxxxxxxxxxxxxxxxxxxxxx
 */
+-- Declaratie van cursor
+DECLARE corona_cursor CURSOR
+FOR
+SELECT DATEPART(week, report_date), SUM(new_cases) / 500
+FROM CovidData
+WHERE country = 'Belgium' and report_date >= '2021-01-01'
+GROUP BY DATEPART(week, report_date)
 
+DECLARE @weeknumber INT, @sumNewCases INT
 
+--OPEN cursor
+OPEN corona_cursor
 
+-- fetch data
+FETCH NEXT FROM corona_cursor INTO @weeknumber, @sumNewCases
 
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT str(@weekNumber, 2) + ' ' + REPLICATE('x', @sumNewCases)
+		FETCH NEXT FROM corona_cursor INTO @weekNumber, @sumNewCases
+	END
+	
+-- close cursor
+CLOSE corona_cursor
 
+-- deallocate cursor
+DEALLOCATE corona_cursor
 -- Exercise 4
 -- Give an overview of all the golfs: startdate + enddate + number of deaths
 -- We define the beginning (ending) of a golf 
@@ -155,3 +247,52 @@ Het aantal cases:     283803
 Het aantal deaths:       2821
 */
 
+-- declare cursor
+DECLARE corona_cursor CURSOR
+FOR
+SELECT report_date, new_cases, new_deaths, AVG(positive_rate) OVER (ORDER BY report_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
+FROM CovidData
+WHERE country = 'Belgium'
+
+DECLARE @report_date datetime2(7), @new_cases INT, @new_deaths INT, @avg_pos_rate float
+DECLARE @total_new_cases INT = 0, @total_new_deaths INT = 0, @in_golf BIT = 0, @teller INT = 0
+
+-- open cursor
+OPEN corona_cursor
+
+-- fetch data
+FETCH NEXT FROM corona_cursor INTO @report_date, @new_cases, @new_deaths, @avg_pos_rate
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		IF @in_golf = 0 AND @avg_pos_rate >= 0.06
+		BEGIN
+			SET @in_golf = 1
+			SET @teller += 1
+			SET @total_new_cases = ISNULL(@new_cases, 0)
+			SET @total_new_deaths = ISNULL(@new_deaths, 0)
+			PRINT 'Begin van golf ' + str(@teller) + ' ---> ' + FORMAT(@report_date, 'dd-MM-yyyy')
+		END
+		ELSE IF @in_golf = 1 AND @avg_pos_rate < 0.06
+		BEGIN
+			SET @in_golf = 0
+			SET @total_new_cases += ISNULL(@new_cases, 0)
+			SET @total_new_deaths += ISNULL(@new_deaths, 0)
+			PRINT 'Einde van golf ' + str(@teller) + ' ---> ' + FORMAT(@report_date, 'dd-MM-yyyy')
+			PRINT 'Het totaal aantal cases ' + str(@total_new_cases)
+			PRINT 'Het totaal aantal doden ' + str(@total_new_deaths)
+			PRINT ''
+		END
+		ELSE IF @in_golf = 1 AND @avg_pos_rate >= 0.06
+		BEGIN
+			SET @total_new_cases += ISNULL(@new_cases, 0)
+			SET @total_new_deaths += ISNULL(@new_deaths, 0)
+		END
+		FETCH NEXT FROM corona_cursor INTO @report_date, @new_cases, @new_deaths, @avg_pos_rate
+	END
+
+-- close cursor
+CLOSE corona_cursor
+
+-- deallocate cursor
+DEALLOCATE corona_cursor

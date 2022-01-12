@@ -216,10 +216,59 @@ ORDER BY Orderid;
 /* Exercises */
 
 -- 1. Give the id and name of the products that have not been purchased yet. 
--- 2. Select the names of the suppliers who supply products that have not been ordered yet. 
+SELECT productid, ProductName 
+FROM Products
+where ProductID NOT IN (Select ProductID from Orders)
+-- 2. Select the names of the suppliers who supply products that have not been ordered yet.
+select s.CompanyName
+from Suppliers s join Products p on s.SupplierID = p.SupplierID
+where ProductID not in (select ProductID from OrderDetails)
 -- 3. Give a list of all customers from the same country as the customer Maison Dewey
+select CompanyName, Country
+from Customers
+where Country = (select country from Customers where CompanyName = 'Maison Dewey')
 -- 4. Calculate how much is earned by the management (like 'president' or 'manager'), the submanagement (like 'coordinator') and the rest
+select titleClass, Sum(salary) AS TotalSalary
+FROM
+(
+	SELECT
+	CASE
+	WHEN title LIKE '%President%' OR title LIKE '%Manager%' THEN 'Management'
+	WHEN title LIKE '%Coordinator%' THEN 'SubManagment'
+	ELSE 'Rest'
+	END, Salary
+	FROM Employees
+)
+AS Totals(TitleClass, Salary)
+GROUP BY TitleClass
 -- 5. Give for each product how much the price differs from the average price of all products of the same category
+SELECT ProductID, ProductName, UnitPrice,
+UnitPrice -
+(
+	SELECT AVG(unitPrice)
+	FROM Products
+	WHERE CategoryID = p.categoryID
+) AS differenceToCategory
+FROM Products p
 -- 6. Give per title the employee that was last hired
+SELECT Title, firstname + ' ' + lastname AS 'name', HireDate
+FROM Employees e
+WHERE HireDate = (SELECT MAX(Hiredate) From Employees where Title = e.title)
 -- 7. Which employee has processed most orders? 
-
+Select e.FirstName + ' '+ e.LastName AS Name, count(*)
+from employees e join orders o on e.EmployeeID = o.EmployeeID
+group by e.EmployeeID, e.LastName, e.FirstName
+having count(*) = 
+(select top 1 count(*)
+from employees e join orders o on e.EmployeeID = o.EmployeeID
+group by e.FirstName + ' ' + e.LastName
+order by count(*) desc);
+-- 8. What's the most common ContactTitle in Customers?
+SELECT DISTINCT contactTitle
+FROM Customers
+where ContactTitle = (SELECT top 1 ContactTitle FROM Customers
+GROUP BY ContactTitle ORDER BY COUNT(contacttitle) DESC)
+-- 9. Is there a supplier that has the same name as a customer?
+SELECT CompanyName
+FROM Suppliers
+where CompanyName IN (SELECT CompanyName FROM Customers)

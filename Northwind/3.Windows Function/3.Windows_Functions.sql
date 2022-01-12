@@ -17,11 +17,18 @@ Brazil		3		Gourmet Lanchonetes
 Brazil		4		Hanari Carnes
 ...
 */
-
-
-
+SELECT  country,
+   ROW_NUMBER() OVER (PARTITION BY country ORDER BY CompanyName) rownum, CompanyName
+FROM customers
+WHERE country IS NOT NULL
+ORDER BY country;
 
 -- Step 1: First create an overview that shows for each productid the amount sold per year
+SELECT od.productid, YEAR(o.orderdate) AS OrderYear,
+SUM(quantity) AS AmountSoldPerYear
+FROM orders o JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY od.ProductID, YEAR(o.orderdate)
+ORDER BY od.ProductID, YEAR(o.orderdate)
 
 
 
@@ -38,10 +45,11 @@ Brazil		4		Hanari Carnes
 3	2018	108	190
 ...
 */
-
-
-
-
+SELECT od.productid, YEAR(o.orderDate) As YearSold, Sum(od.quantity) AS AmountSoldPerYear,
+LAG(sum(od.quantity), 1) OVER (PARTITION BY Productid order by YEAR(o.orderDate)) AS AmountSoldPreviousYear
+FROM Orders o JOIN orderDetails od on o.orderid = od.orderid
+Group by od.productid, year(o.orderdate)
+order by od.ProductID, year(o.orderdate)
 
 -- Step 3: Use a CTE and the previous SQL Query to calculate the year over year performance for each productid. 
 -- If the amountPreviousYear is NULL, then the year over year performance becomes N/A.
@@ -58,7 +66,16 @@ Brazil		4		Hanari Carnes
 3	2018	108	190	-43.16%
 ...
 */
+with cte_amountSold(ProductId, YearOrder, AmountSoldPerYear, AmountSoldPreviousYear)
+AS
+(SELECT od.ProductID, YEAR(o.OrderDate) AS YearSold,
+SUM(od.Quantity) AS AmountSoldPerYear,
+LAG(SUM(od.Quantity),1) OVER (PARTITION BY ProductID ORDER BY YEAR(o.OrderDate)) AS AmountSoldPreviousYear
+FROM Orders o JOIN OrderDeatils od ON o.OrderID = od.OrderID
+GROUP BY od.ProductID, YEAR(o.OrderDate))
 
+SELECT ProductID, YearOrder, AmountSoldPerYear, AmountSoldPreviousYear, ISNULL(FORMAT(1.0 * (AmountSoldPerYear - AmountSoldPreviousYear) / AmountSoldPreviousYear, 'P', 'N/A') AS RelativeDifference
+FROM cte_amountSold
 
 
 -- Exercise2 

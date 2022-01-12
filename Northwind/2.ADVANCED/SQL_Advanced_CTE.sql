@@ -34,7 +34,19 @@ AS Totals(Regionclass, OrderID)
 GROUP BY Regionclass
 
 -- Solution 3 (with CTE's)
+WITH Totals(Regionclass, OrderId) AS
+(SELECT 
+CASE c.Country
+WHEN 'USA' THEN 'Northern America'
+WHEN 'Canada' THEN 'Northern America'
+ELSE 'Rest of world' 
+END AS Regionclass, o.OrderID
+FROM Customers c JOIN Orders o 
+ON c.CustomerID = o.CustomerID)
 
+SELECT RegionClass, COUNT(OrderID)
+FROM Totals
+GROUP BY Region
 
 
 -- 2 Make a histogram of the number of orders per customer, so show how many times each number occurs. 
@@ -54,7 +66,15 @@ nr	NumberOfCustomers
 
 */
 
+WITH NumberOfOrders(nr) AS
+(SELECT count(*)
+from orders
+group by CustomerID)
 
+SELECT nr, Count(*) as NumberOfCustomers
+FROM NumbersOfOrders
+GROUP BY nr
+Order by nr;
 -- 3. Give the customers of the Country in which most customers live
 
 
