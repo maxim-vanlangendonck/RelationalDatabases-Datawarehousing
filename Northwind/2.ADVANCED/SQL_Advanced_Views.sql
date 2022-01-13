@@ -29,12 +29,25 @@ SELECT * FROM vw_product_to_order
 -- The products in scope are all the products with the term 'Bröd' or 'Biscuit'.
 
 -- (2.1) Create a simple SQL Query to get the correct resultset
-
+SELECT ProductID, ProductName, UnitPrice
+FROM Products
+WHERE ProductName LIKE '%bröd%' OR ProductName LIKE '%biscuit%'
 
 -- (2.2) Turn this SELECT statement into a VIEW called: vw_price_increasing_products.
-
+CREATE VIEW vw_price_increasing_products AS
+SELECT ProductID, ProductName, UnitPrice
+FROM Products
+WHERE ProductName LIKE '%bröd%' OR ProductName LIKE '%biscuit%'
 
 -- (2.3) Query the VIEW to see the results.
+SELECT * FROM vw_price_increasing_products
 
+-- (2.4) Increase the price of the resultset of the VIEW: 
+--vw_price_increasing_products by 2%
+BEGIN TRANSACTION
+UPDATE vw_price_increasing_products
+SET UnitPrice *= 1.02
 
--- (2.4) Increase the price of the resultset of the VIEW: vw_price_increasing_products by 2%
+SELECT * FROM vw_price_increasing_products
+
+rollback;

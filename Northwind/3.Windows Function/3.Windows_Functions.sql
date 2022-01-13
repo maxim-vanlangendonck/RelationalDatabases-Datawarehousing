@@ -95,9 +95,11 @@ FROM cte_amountSold
 4	2018	57594,95
 ...
 */
-
-
-
+SELECT SUM(od.UnitPrice * od.Quantity) AS Revenue, 
+YEAR(o.OrderDate) AS OrderYear, o.EmployeeID
+FROM Orders o JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY o.EmployeeID, YEAR(o.OrderDate)
+ORDER BY EmployeeID, OrderYear
 
 -- Step 2: Now add a ranking per year per employeeid
 /*
@@ -113,6 +115,13 @@ FROM cte_amountSold
 ...
 */
 
+SELECT o.EmployeeID,
+YEAR(o.OrderDate) AS OrderYear,
+SUM(od.UnitPrice * od.Quantity) AS Revenue,
+RANK() OVER (PARTITION BY YEAR(o.OrderDate) 
+ORDER BY SUM(od.UnitPrice * od.Quantity) DESC) AS Ranking
+FROM Orders o JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY o.EmployeeID, YEAR(o.OrderDate)
 
 
 -- Step 3: Imagine there is a bonussystem for all the employees: the best employee gets 10 000EUR bonus, the second one 5000 EUR, the third one 2500 EUR, …
@@ -129,7 +138,13 @@ FROM cte_amountSold
 9	2016	11365,70	1111
 ...
 */
-
+SELECT o.EmployeeID,
+YEAR(o.OrderDate) AS OrderYear,
+SUM(od.UnitPrice * od.Quantity) AS Revenue,
+10000 / RANK() OVER (PARTITION BY YEAR(o.OrderDate) 
+ORDER BY SUM(od.UnitPrice * od.Quantity) DESC) AS Bonus
+FROM Orders o JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY o.EmployeeID, YEAR(o.OrderDate);
 
 
 
@@ -153,9 +168,24 @@ FROM cte_amountSold
 */
 
 -- Step 1: calculate the revenue per year and per month
-
+WITH RevenuePerYearAndMonth(OrderYear, OrderMonth, Revenue)
+AS
+(SELECT YEAR(o.OrderDate) AS OrderYear, MONTH(o.OrderDate) AS OrderMonth,
+SUM(od.UnitPrice * od.Quantity) AS Revenue
+FROM Orders o JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY YEAR(o.OrderDate), MONTH(o.OrderDate)),
 
 -- Step 2: Add an extra column for each row with the revenue of the previous month
-
+RevenuePerYearAndMonthAndPreviousMonth(OrderYear, OrderMonth,
+Revenue, RevenuePreviousMonth)
+AS
+(SELECT OrderYear, OrderMonth, Revenue,
+LAG(Revenue) OVER (ORDER BY OrderYear, OrderMonth)
+RevenuePreviousMonth
+FROM RevenuePerYearAndMonth)
 
 -- Step 3: Calculate the percentage difference between this month and the previous month
+SELECT OrderYear, OrderMonth, Revenue, RevenuePreviousMonth,
+FORMAT((Revenue - RevenuePreviousMonth) / RevenuePreviousMonth), 'P') AS PercentageDifference
+FROM RevenuePerYearAndMonthAndPreviousMonth
+ORDER BY OrderYear, OrderMonth

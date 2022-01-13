@@ -97,7 +97,7 @@ PRINT 'The number of invovled customers = ' + STR(@numberOfInvolvedCustomers)
 -- 10249	14			18,60		9			0
 -- 10249	51			42,40		40			0
 
-CREATE PROCEDURE InsertProduct (@orderID INT,
+CREATE OR ALTER PROCEDURE InsertProduct (@orderID INT,
 @productID INT, @unitPrice Money = NULL, @quantity SMALLINT,
 @discount REAL = NULL)
 AS
@@ -108,15 +108,66 @@ BEGIN
 	RETURN
 END
 
-IF
+IF @productID IS NULL
+BEGIN
+	PRINT 'The ProductID can''t be null'
+	RETURN
+END
 
+IF NOT EXISTS (SELECT * FROM Orders WHERE OrderID = @orderID)
+BEGIN
+	PRINT 'The OrderID doesn''t exist.'
+	RETURN
+END
 
+IF NOT EXISTS (SELECT * FROM Products WHERE ProductID = @productID)
+BEGIN
+	PRINT 'The ProductID doesn''t exist.'
+	RETURN
+END
+
+DECLARE @unitPriceProduct Money = (SELECT UnitPrice FROM Products WHERE
+ProductID = @productID)
+
+IF @unitPrice IS NULL
+	SET @unitPrice = @unitPriceProduct
+
+IF (@unitPriceProduct * 0.85 > @unitPrice) OR (@unitPriceProduct * 1.15
+< @unitPrice)
+BEGIN
+	PRINT 'The difference between the given UnitPrice and the UnitPrice in the table
+	Products is larger than %15'
+	RETURN
+END
+
+IF @discount IS NULL
+	SET @discount = 0
+
+IF @discount < 0 OR @discount > 0.25
+BEGIN
+	PRINT 'The discount is < 0 OR > 0.25. This is not allowed.'
+	RETURN
+END
+
+DECLARE @maxQuantity SMALLINT
+SET @maxQuantity = (SELECT MAX(quantity) FROM OrderDetails WHERE
+ProductID = @productID)
+
+IF @quantity > @maxQuantity
+BEGIN
+	PRINT 'The given quantity > 2 * the max ordered quantity
+	of this product untill now. This is not allowed.'
+	RETURN
+END
+
+INSERT INTO OrderDetails
+VALUES(@orderID, @productID, @unitPrice, @quantity, @discount)
 
 -- TestCode
 
 BEGIN TRANSACTION
 
-
+EXEC InsertProduct 10249, 172, 35, 10, 0.35
 
 SELECT * FROM OrderDetails WHERE OrderID = 10249
 
@@ -137,24 +188,55 @@ ROLLBACK;
 
 
 -- Version 1
+CREATE OR ALTER PROCEDURE DeleteShipper1 @shipperID INT
+AS
+IF NOT EXISTS (SELECT null FROM Shippers WHERE ShipperID = @shipperID)
+BEGIN
+	RAISERROR ('The shipper doesn''t exist', 14,0)
+	RETURN
+END
+IF EXISTS (SELECT * FROM Orders WHERE ShipVia = @shipperID)
+BEGIN
+	RAISERROR('There are already shippings for this shipper', 14,0)
+	RETURN
+END
 
+DELETE FROM Shippers WHERE ShipperID = @shipperID
+PRINT 'Shipper: ' + str(@shipperID) + ' deleted.'
 
 -- Testcode
 BEGIN TRANSACTION
 
-
+EXEC DeleteShipper1 5
 
 SELECT * FROM Shippers
 
 ROLLBACK;
 
 -- Version 2
+CREATE OR ALTER PROCEDURE DeleteShipper2 @shipperID INT
+AS
 
+BEGIN TRY
+
+DELETE FROM Shippers WHERE ShipperID = @shipperID
+
+IF @@ROWCOUNT = 0
+THROW 50000, 'The shipper doesn''t exist.', 14
+PRINT 'Shipper ' + str(@shipperID) + ' deleted.'
+END TRY
+
+BEGIN CATCH
+IF ERROR_NUMBER() = 50000
+	PRINT ERROR_MESSAGE()
+ELSE IF ERROR_NUMBER() = 547 AND ERROR_MESSAGE() like '%order%'
+PRINT 'There are already shippings for this shipper.'
+END CATCH
 
 -- Testcode
 BEGIN TRANSACTION
 
-
+EXEC DeleteShipper2 3
 
 SELECT * FROM Shippers
 

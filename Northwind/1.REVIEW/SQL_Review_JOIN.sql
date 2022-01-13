@@ -97,15 +97,28 @@ SELECT s.SupplierID, s.CompanyName, p.ProductName
 FROM Products p JOIN Suppliers s 
 ON s.SupplierID = p.SupplierID
 JOIN Categories c ON c.CategoryName = 'Dairy Products'
+
 -- 2. Give for each supplier the number of orders that contain products of that supplier. 
 -- Show supplierID, companyname and the number of orders.
 -- Order by companyname.
+SELECT s.SupplierID, s.CompanyName, COUNT(DISTINCT od.OrderID) AS NrOfOrders
+FROM Suppliers s JOIN Products p ON s.SupplierID = p.SupplierID
+JOIN OrderDetails od ON p.ProductID = od.ProductID
+GROUP BY s.SupplierID, s.CompanyName
+ORDER BY s.CompanyName
 
 -- 3. What's for each category the lowest UnitPrice? Show category name and unit price. 
+SELECT c.CategoryName, MIN(p.UnitPrice) AS 'Min UnitPrice'
+FROM Categories c JOIN Products p ON c.CategoryID = p.CategoryID
+GROUP BY c.CategoryName
 
 -- 4. Give for each ordered product: productname, the least (columnname 'Min amount ordered') and the most ordered (columnname 'Max amount ordered'). Order by productname.
+SELECT p.ProductName, MIN(od.Quantity) AS 'Min Amount Ordered' , MAX(od.Quantity) AS 'Max Amount Ordered'
+FROM Products p JOIN OrderDetails od ON p.ProductID = od.ProductID
+GROUP BY p.ProductName
+ORDER BY p.ProductName
 
 -- 5. Give a summary for each employee with orderID, employeeID and employeename.
 -- Make sure that the list also contains employees who don�t have orders yet.
-
-
+SELECT o.OrderID, e.EmployeeID, e.FirstName + ' ' + e.LastName As 'Employee Name'
+FROM Orders o LEFT JOIN Employees e ON o.EmployeeID = o.EmployeeID

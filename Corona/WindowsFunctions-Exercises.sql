@@ -114,9 +114,14 @@ Georgia						0.002207						14
 Belgium						0.002196						15
 
 */
+WITH cte1(country, relative_number_of_deaths)
+AS
+(SELECT cd.country, SUM(cd.new_deaths * 1.0) / c.population
+FROM CovidData cd JOIN Countries c ON cd.country = c.country
+GROUP BY cd.country, population)
 
-
-
+SELECT *, RANK() OVER (ORDER BY relative_number_of_deaths DESC) AS rank_deaths
+FROM cte1;
 
 
 -- 5.
@@ -134,6 +139,26 @@ report_date						new_cases	total_cases	new_deaths	weekly_avg_new_cases	weekly_av
 
 */
 
+WITH cte1
+AS
+(SELECT report_date, new_cases, total_cases, new_deaths,
+AVG(new_cases * 1.0) OVER (ORDER BY report_date ROWS BETWEEN 6 PRECEDING
+AND CURRENT ROW) AS weekly_avg_new_cases,
+AVG(new_deaths * 1.0) OVER (ORDER BY report_date ROWS BETWEEN 6 PRECEDING
+AND CURRENT ROW) AS weekly_avg_new_deaths
+FROM CovidData
+WHERE country = 'Belgium'),
+
+cte2
+AS
+(SELECT *,
+LAG(weekly_avg_new_cases) OVER (ORDER BY report_date) AS weekly_avg_new_cases_previous
+FROM cte1)
+
+SELECT *, (weekly_avg_new_cases - weekly_avg_new_cases_previous) / weekly_avg_new_cases AS 'Relative difference'
+FROM cte2
+WHERE weekly_avg_new_cases <> 0 and report_date > '2020-04-01'
+ORDER BY 'Relative difference' DESC
 -- 6
 -- The main reason for the lockdowns was to prevent the hospital system from collapsing
 -- (i.e. too much patients on IC)
@@ -154,3 +179,31 @@ report_week	report_year	avg_number_hosp_patients	avg_number_hosp_patients_previo
 44			2020			5813					3376									0.72186018957345971
 */
 
+WITH cte1
+AS
+(SELECT report_date, hosp_patients, DATEPART(WEEK, report_date) AS report_week,
+YEAR (report_date) AS report_year
+FROM CovidData
+WHERE country = 'Belgium'),
+
+cte2 AS
+(SELECT report_week, report_year, AVG(hosp_patients) AS avg_number_hosp_patients
+FROM cte1
+GROUP BY report_week, report_year),
+
+cte3 AS
+(SELECT *,
+LAG(avg_number_hosp_patients) OVER (ORDER BY report_year, report_week) AS avg_number_hosp_patients_previous_week
+FROM cte2)
+
+SELECT *, (avg_number_hosp_patients - 
+avg_number_hosp_patients_previous_week) * 1.0 /
+avg_number_hosp_patients_previous_week AS relative_change
+FROM cte3
+WHERE (avg_number_hosp_patients -
+avg_number_hosp_patients_previous_week) * 1.0 /
+avg_number_hosp_patients_previous_week > 0.5
+
+SELECT min(report_date) FROM coviddata where country = 'Belgium'
+
+SELECT week(report_date), MONT

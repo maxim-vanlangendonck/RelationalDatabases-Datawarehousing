@@ -547,12 +547,13 @@ WHERE CURRENT OF <cursor_name>
     - for each statement
 ### Procedural database object
 - procedural programma's
-| Types | Saved as  | Execution | Supports Parameters |
-| :---  | :---      | :---      | :----               |
-| **script**  | seperate file | client tool (management studio) | no  |
-| **stored procedure**  | database object | via application or SQL script | yes |
-| **user defined function** | database object | via application or SQL script | yes |
-| **trigger** | database object | via DML statement | no  |
+
+| Types                     | Saved as        | Execution                       | Supports Parameters |
+| :---                      | :---            | :---                            | :---               |
+| **script**                | seperate file   | client tool (management studio) | no  |
+| **stored procedure**      | database object | via application or SQL script   | yes |
+| **user defined function** | database object | via application or SQL script   | yes |
+| **trigger**               | database object | via DML statement               | no            |
 
 ### Why using triggers?
 - de validatie van data en complex constraints

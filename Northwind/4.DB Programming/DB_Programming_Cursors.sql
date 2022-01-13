@@ -129,9 +129,51 @@ Total number of employees =          5
     -          9 Anne Dodsworth
 Total number of employees =          3
 */
+DECLARE @reportsTo INT, @bossName NVARCHAR(50), @employeeID INT, @fullName NVARCHAR(50), @numberOfEmployees INT = 0
 
 DECLARE boss_cursor CURSOR
 FOR
 SELECT DISTINCT reportsTo
 FROM Employees
 WHERE reportsTo IS NOT NULL
+
+OPEN boss_cursor
+
+FETCH NEXT FROM boss_cursor into @reportsTo
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	SELECT @bossName = FirstName + ' ' + LastName 
+	FROM Employees WHERE EmployeeID = @reportsTo
+	PRINT '* ' + @bossName
+
+	SET @numberOfEmployees = 0
+
+	-- begin inner cursor
+	DECLARE employees_cursor CURSOR FOR
+	SELECT EmployeeID, FirstName + ' ' + LastName
+	FROM Employees
+	WHERE ReportsTo = @reportsTo
+
+	-- open cursor
+	OPEN employees_cursor
+
+	-- fetch data
+	FETCH NEXT FROM employees_cursor INTO @employeeID, @fullName
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		PRINT '        - ' + str(@employeeID) + ' ' + @fullName
+		SET @numberOfEmployees += 1
+		FETCH NEXT FROM employees_cursor INTO @employeeID, @fullName
+	END
+
+	CLOSE employees_cursor
+	DEALLOCATE employees_cursor
+	PRINT 'Total number of employees = ' + str(@numberOfEmployees)
+
+	FETCH NEXT FROM boss_cursor INTO @reportsTo
+END
+
+CLOSE boss_cursor
+
+DEALLOCATE boss_cursor

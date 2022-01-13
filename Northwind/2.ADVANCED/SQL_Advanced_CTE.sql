@@ -46,7 +46,7 @@ ON c.CustomerID = o.CustomerID)
 
 SELECT RegionClass, COUNT(OrderID)
 FROM Totals
-GROUP BY Region
+GROUP BY RegionClass
 
 
 -- 2 Make a histogram of the number of orders per customer, so show how many times each number occurs. 
@@ -72,32 +72,86 @@ from orders
 group by CustomerID)
 
 SELECT nr, Count(*) as NumberOfCustomers
-FROM NumbersOfOrders
+FROM NumberOfOrders
 GROUP BY nr
 Order by nr;
 -- 3. Give the customers of the Country in which most customers live
+WITH cte1(Country, NumberOfCustomers)
+AS
+(SELECT Country, COUNT(CustomerID)
+FROM Customers
+GROUP BY Country),
 
+cte2(MaximumNumberOfCustomers)
+AS
+(SELECT MAX(NumberOfCustomers)
+FROM cte1)
+
+SELECT CustomerID, CompanyName, c.Country
+FROM Customers c JOIN cte1 ON c.Country = cte1.Country
+JOIN cte2 ON cte1.NumberOfCustomers = cte2.MaximumNumberOfCustomers
 
 
 -- 4. Give all employees except for the eldest
 -- Solution 1 (using Subqueries)
-
+SELECT EmployeeID, FirstName + ' ' + LastName AS EmployeeName, BirthDate
+FROM Employees
+WHERE Birthdate > (SELECT MIN(BirthDate) FROM Employees)
 
 -- Solution 2 (using CTE's)
+WITH eldest(min_birtdate) AS
+(SELECT min(BirthDate)
+FROM Employees)
 
+SELECT EmployeeID, FirstName + ' ' + LastName AS EmployeeName, BirthDate
+FROM Employees CROSS JOIN eldest
+WHERE BirthDate > eldest.min_birtdate
 
 
 
 -- 5.  What is the total number of customers and suppliers?
+WITH totalNumberOfCustomers(nrOfCust) AS
+(SELECT COUNT(CustomerID) FROM Customers),
+totalNumberOfSuppliers(nrOfSup) AS
+(SELECT COUNT(SupplierID) FROM Suppliers)
 
+SELECT ((SELECT nrOfCust FROM totalNumberOfCustomers) + 
+(SELECT nrOfSup FROM totalNumberOfSuppliers)) AS 'Total number of Customers en Suppliers'
 
 -- 6. Give per title the eldest employee
+WITH eldestPerTitle(title, min_birtdate) AS
+(SELECT Title, min(BirthDate)
+FROM Employees
+GROUP BY Title)
 
+SELECT e.EmployeeID, ept.Title, ept.min_birtdate
+FROM Employees e JOIN eldestPerTitle ept ON e.Title = ept.title
+WHERE e.BirthDate = ept.min_birtdate
 
 -- 7. Give per title the employee that earns most
+WITH mostEarningTitle(Title, max_salary) AS
+(SELECT Title, MAX(Salary)
+FROM Employees
+GROUP BY Title)
 
+SELECT e.EmployeeID, FirstName + ' ' + LastName AS EmployeeName, met.max_salary, met.Title
+FROM Employees e JOIN mostEarningTitle met ON e.Title = met.Title
+WHERE e.Salary = met.max_salary
 -- 8. Give the titles for which the eldest employee is also the employee who earns most
+WITH eldestPerTitle(title, min_birthdate) AS
+(SELECT Title, min(BirthDate)
+FROM Employees
+GROUP BY Title),
 
+mostEarningTitle(Title, max_salary) AS
+(SELECT Title, MAX(Salary)
+FROM Employees
+GROUP BY Title)
+
+SELECT EmployeeID, ept.Title, ept.min_birthdate, met.max_salary
+FROM Employees e JOIN eldestPerTitle ept ON e.Title = ept.title
+JOIN mostEarningTitle met ON ept.title = met.Title
+WHERE e.BirthDate = ept.min_birthdate AND e.Salary = met.max_salary
 
 -- 9. Execute the following script:
 CREATE TABLE Parts 
@@ -130,3 +184,17 @@ O6		O8		O2 <-O6 <-O8
 O8		O11		O2 <-O6 <-O8 <-O11
 
 */
+
+WITH Relation(Super, Sub, [Path]) AS
+(
+-- Default
+SELECT Super, Sub, [Path] = CAST(CONCAT(Super, ' <- ', Sub) AS nvarchar(MAX))
+FROM Parts
+WHERE Super = '02'
+
+-- Recursion
+UNION ALL
+SELECT Parts.Super, Parts.Sub, [Path] = CONCAT(Relation.[PATH], ' <- ', Parts.Sub)
+FROM Parts JOIN Relation ON Parts.Super = Relation.Sub )
+
+SELECT * FROM Relation;

@@ -1,7 +1,18 @@
 --- SQL Review --- 
 -- 1. There how many different musical Styles?
+SELECT COUNT(DISTINCT *) AS 'Number of different Musical Styles'
+FROM Musical_Styles
+
 -- 2. What is the number of available entertainers per style?
+SELECT es.StyleID, ms.StyleName, COUNT(EntertainerID) AS NumberOfEntertainers
+FROM Entertainer_Styles es JOIN Musical_Styles ms ON es.StyleID = ms.StyleID
+GROUP BY es.StyleID, ms.StyleName
 -- 3. What are the memebers that belong ot more than 1 entertainer?
+SELECT m.MemberID, m.MbrFirstName + ' ' + m.MbrLastName AS 'NameOfMember', COUNT(DISTINCT EntertainerID) As NumberOfEntertainers
+FROM Entertainer_Members em JOIN Members m ON em.MemberID = m.MemberID
+GROUP BY m.MemberID, MbrFirstName + ' ' + MbrLastName
+HAVING COUNT(DISTINCT EntertainerID) > 1
+
 -- 4. What is the number of engagements per year and per entertainer? Use StartDate to determine the year. Order on the number of engagemetns in descending way.
 -- 5. What is the total revenue for each entertainer per year? Use contractprice to calculate the revenue. Order on the total revenue in descending way.
 -- 6. How many entertainers were entered per year? Order by year in ascending way
